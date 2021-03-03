@@ -26,19 +26,42 @@ void test_fsm_sensores_fsmInitFillsStructWithSomething(){
 }
 
 void test_fsm_fsmInitCheckInitialState(){
+    fsm_t f;
+    fsm_init_sensores((fsm_t *)&f);
 
+    TEST_ASSERT(f.current_state == Idle);
+}
+
+int test_Activa_Sensor_Callback(int NumCalls){
+    switch(NumCalls){
+        case 0: // Primera llamada a la función
+            TEST_ASSERT(TRUE);
+            break;
+        default:
+            TEST_ASSERT(FALSE);
+    }
+    return TRUE;
 }
 
 void test_fsm_fsmCheckTransitionIdleToMedidas(){
+    fsm_t f;
+    fsm_init_sensores((fsm_t *)&f);
 
+    checkStart_ExpectAndReturn(TRUE);
+    Activa_Sensor_Stub(test_Activa_Sensor_Callback);
+    fsm_fire(&f);
+
+    TEST_ASSERT(f.current_state == Medidas);
 }
 
 void test_fsm_fsmCheckNotTransitionIdleToMedidas(){
+    fsm_t f;
+    fsm_init_sensores((fsm_t *)&f);
 
-}
+    checkStart_ExpectAndReturn(FALSE);
+    fsm_fire(&f);
 
-void test_fsm_fsmCheckTransitionIdleToMedidasReturnActivaSensores(){
-    
+    TEST_ASSERT(f.current_state == Idle);
 }
 
 void test_fsm_fsmCheckTransitionMedidasToLectura(){
