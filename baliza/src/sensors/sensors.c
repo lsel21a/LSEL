@@ -38,6 +38,7 @@ sensors_init(sensors_config_t* p_config) {
 
     p_bme_dev_i2c_addr = (uint8_t*)malloc(sizeof(uint8_t));
     if (p_bme_dev_i2c_addr == NULL) {
+        sensors_deinit(p_config);
         return SENSORS_MEM_ERR;
     }
 
