@@ -31,15 +31,6 @@ sensors_status_t sensors_init(sensors_config_t* p_config);
  */
 sensors_status_t sensors_deinit(sensors_config_t* p_config);
 
-/* TODO
- * 
- * Deinit
- *   Parameters: sensors_config_t*
- *   Put sensor(s) in low power mode
- *   Clean sensors_config_t allocs
- *   Unset init flag
- */
-
 
 /* End of CPP guard */
 #ifdef __cplusplus

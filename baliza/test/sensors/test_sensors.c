@@ -22,13 +22,7 @@ setUp(void) {
 void
 tearDown(void) {
 }
-/* Tests
- *  - Init ok, result ok and valid init_done value
- *  - Init error, any of the BME functions fail
- * 
- *  - Deinit check ok
- *  - Deinit check valid free
- */
+
 void
 test_sensors_InitOk() {
     /* If the BME68x lib calls are correct, everything should be ok */
