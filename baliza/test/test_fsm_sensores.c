@@ -38,9 +38,8 @@ void test_fsm_fsmCheckTransitionIdleToMedidas(){
     fsm_t f;
     fsm_init_sensores((fsm_t *)&f);
 
-    checkStart_ExpectAndReturn(True);
-	Activa_Temporizador_ExpectAndReturn(False);
-    Activa_Sensor_ExpectAndReturn(False);
+    checkStart_ON_ExpectAnyArgsAndReturn(True);
+	Activa_Sensores_ExpectAnyArgs();
     fsm_fire(&f);
 
     TEST_ASSERT(f.current_state == Medidas);
@@ -50,7 +49,7 @@ void test_fsm_fsmCheckNotTransitionIdleToMedidas(){
     fsm_t f;
     fsm_init_sensores((fsm_t *)&f);
 
-    checkStart_ExpectAndReturn(False);
+    checkStart_ON_ExpectAnyArgsAndReturn(False);
     fsm_fire(&f);
 
     TEST_ASSERT(f.current_state == Idle);
@@ -61,29 +60,55 @@ void test_fsm_fsmCheckTransitionMedidasToLectura(){
     fsm_init_sensores((fsm_t *)&f);
 	
 	f.current_state = Medidas;
-	Estado_Temporizador_ExpectAndReturn(True);
-	Lee_Sensor_ExpectAndReturn(True);
+	Deadline_ExpectAnyArgsAndReturn(True);
+	Lectura_Sensores_ExpectAnyArgs();
 	fsm_fire(&f);
 
     TEST_ASSERT(f.current_state == Lectura);
 }
 
-void test_fsm_fsmCheckTransitionMedidasToLecturaReturnLecturaSensores(){
-    
+void test_fsm_fsmCheckNotTransitionMedidasToLectura(){
+    fsm_t f;
+    fsm_init_sensores((fsm_t *)&f);
+	
+	f.current_state = Medidas;
+	Deadline_ExpectAnyArgsAndReturn(False);
+	fsm_fire(&f);
+
+    TEST_ASSERT(f.current_state == Medidas);	
 }
 
 void test_fsm_fsmCheckTransitionLecturaToCalculos(){
-    
+    fsm_t f;
+    fsm_init_sensores((fsm_t *)&f);
+	
+	f.current_state = Lectura;
+	LecturaFinalizadaOK_ExpectAnyArgsAndReturn(True);
+	Dato_Valido_ExpectAnyArgs();
+	fsm_fire(&f);
+
+    TEST_ASSERT(f.current_state == Calculos);
 }
 
-void test_fsm_fsmCheckTransitionLecturaToCalculosReturnDatoValido(){
-    
+void test_fsm_fsmCheckNotTransitionLecturaToCalculos(){
+    fsm_t f;
+    fsm_init_sensores((fsm_t *)&f);
+	
+	f.current_state = Lectura;
+	LecturaFinalizadaOK_ExpectAnyArgsAndReturn(False);
+	fsm_fire(&f);
+
+    TEST_ASSERT(f.current_state == Lectura);
 }
 
 void test_fsm_fsmCheckTransitionCalculosToIdle(){
-    
-}
+    fsm_t f;
+    fsm_init_sensores((fsm_t *)&f);
+	
+	f.current_state = Calculos;
+	ReturnTrue_ExpectAnyArgsAndReturn(True);
+	Dato_NoValido_ExpectAnyArgs();
+	fsm_fire(&f);
 
-void test_fsm_fsmCheckTransitionCalculosToIdleReturnDatoNoValido(){
-    
+    TEST_ASSERT(f.current_state == Idle);
 }

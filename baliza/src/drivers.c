@@ -1,42 +1,49 @@
 #include "drivers.h"
 
-
-static int temporizador = 0, lectura = 0;
-
-int Activa_Temporizador(void){
-	
-	temporizador = 0; // Temporizado contando
-	return 0;
-
-}
-
-int Activa_Sensor(void){
-	
-	return 0;
-
-}
-
-int Estado_Temporizador(void){
-
-	return temporizador;
-
-}
-
-int Lee_Sensor(void){
-	
-	lectura = 1; // Lectura finalizada
-    return 0;
-
-}
-
-int Estado_Lectura(void){
-	
-	return lectura;
-
-}
-
-int checkStart(void){
+int checkStart_ON(fsm_t *this){
 
     return 1;
 
+}
+
+void Activa_Sensores(fsm_t *this){
+
+	return 1;
+
+}
+
+int Deadline(fsm_t *this){
+	
+	return 1;
+
+}
+
+void Lectura_Sensores(fsm_t *this){
+
+    return 1;
+
+}
+
+void Dato_Valido(fsm_t *this){
+
+    return 1;
+
+}
+
+int LecturaFinalizadaOK(fsm_t *this){
+
+	return 1;
+	
+}
+
+void Dato_NoValido(fsm_t *this){
+
+    return 1;
+
+}
+
+int ReturnTrue(fsm_t *this){
+	
+	return 1;
+	
 }

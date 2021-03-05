@@ -1,11 +1,15 @@
 #ifndef DRIVERS_H
 #define DRIVERS_H
 
-int Activa_Temporizador(void);
-int Activa_Sensor(void);
-int Estado_Temporizador(void);
-int Lee_Sensor(void);
-int Estado_Lectura(void);
-int checkStart(void);
+#include "fsm.h"
+
+int checkStart_ON(fsm_t *this);
+void Activa_Sensores(fsm_t *this);
+int Deadline(fsm_t *this);
+void Lectura_Sensores(fsm_t *this);
+int LecturaFinalizadaOK(fsm_t *this);
+void Dato_Valido(fsm_t *this);
+void Dato_NoValido(fsm_t *this);
+int ReturnTrue(fsm_t *this);
 
 #endif
