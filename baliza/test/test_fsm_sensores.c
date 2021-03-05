@@ -2,8 +2,10 @@
 #include <string.h>
 #include "fsm.h"
 #include "fsm_sensores.h"
-#include "mock_sensores.h"
+#include "mock_drivers.h"
 
+#define True 1
+#define False 0
 
 void setUp(void)
 {
@@ -32,23 +34,13 @@ void test_fsm_fsmInitCheckInitialState(){
     TEST_ASSERT(f.current_state == Idle);
 }
 
-int test_Activa_Sensor_Callback(int NumCalls){
-    switch(NumCalls){
-        case 0: // Primera llamada a la función
-            TEST_ASSERT(TRUE);
-            break;
-        default:
-            TEST_ASSERT(FALSE);
-    }
-    return TRUE;
-}
-
 void test_fsm_fsmCheckTransitionIdleToMedidas(){
     fsm_t f;
     fsm_init_sensores((fsm_t *)&f);
 
-    checkStart_ExpectAndReturn(TRUE);
-    Activa_Sensor_Stub(test_Activa_Sensor_Callback);
+    checkStart_ExpectAndReturn(True);
+	Activa_Temporizador_ExpectAndReturn(False);
+    Activa_Sensor_ExpectAndReturn(False);
     fsm_fire(&f);
 
     TEST_ASSERT(f.current_state == Medidas);
@@ -58,14 +50,22 @@ void test_fsm_fsmCheckNotTransitionIdleToMedidas(){
     fsm_t f;
     fsm_init_sensores((fsm_t *)&f);
 
-    checkStart_ExpectAndReturn(FALSE);
+    checkStart_ExpectAndReturn(False);
     fsm_fire(&f);
 
     TEST_ASSERT(f.current_state == Idle);
 }
 
 void test_fsm_fsmCheckTransitionMedidasToLectura(){
-    
+    fsm_t f;
+    fsm_init_sensores((fsm_t *)&f);
+	
+	f.current_state = Medidas;
+	Estado_Temporizador_ExpectAndReturn(True);
+	Lee_Sensor_ExpectAndReturn(True);
+	fsm_fire(&f);
+
+    TEST_ASSERT(f.current_state == Lectura);
 }
 
 void test_fsm_fsmCheckTransitionMedidasToLecturaReturnLecturaSensores(){
@@ -87,15 +87,3 @@ void test_fsm_fsmCheckTransitionCalculosToIdle(){
 void test_fsm_fsmCheckTransitionCalculosToIdleReturnDatoNoValido(){
     
 }
-
-
-
-
-
-
-
-
-
-
-
-

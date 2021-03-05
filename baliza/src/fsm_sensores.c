@@ -1,13 +1,13 @@
 #include "fsm_sensores.h"
-#include "sensores.h"
+#include "drivers.h"
 #include <stddef.h>
 
 
 static fsm_trans_t sensores_tt[] = {
     {Idle, checkStart_ON, Medidas, Activa_Sensores},
-    {Medidas, Return_Always_True, Lectura, Lectura_Sensores},
-    {Lectura, Return_Always_True, Calculos, Dato_Valido},
-    {Calculos, Return_Always_True, Idle, Dato_NoValido},
+    {Medidas, Deadline, Lectura, Lectura_Sensores},
+    {Lectura, LecturaFinalizadaOK, Calculos, Dato_Valido},
+    {Calculos, 1, Idle, Dato_NoValido},
     {-1, NULL, -1, NULL}
 };
 
@@ -27,7 +27,14 @@ int checkStart_ON(fsm_t *this){
 
 void Activa_Sensores(fsm_t *this){
 
+	Activa_Temporizador();
     Activa_Sensor();
+
+}
+
+int Deadline(fsm_t *this){
+	
+	return Estado_Temporizador();
 
 }
 
@@ -43,12 +50,14 @@ void Dato_Valido(fsm_t *this){
 
 }
 
+int LecturaFinalizadaOK(fsm_t *this){
+
+	return Estado_Lectura();
+	
+}
+
 void Dato_NoValido(fsm_t *this){
 
     DatoValido = 0;
 
-}
-
-int Return_Always_True(fsm_t *this){
-    return TRUE;
 }
