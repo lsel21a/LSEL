@@ -12,11 +12,9 @@
 #ifdef TEST
 #include <stdint.h>
 #include <stddef.h>
-#include <malloc.h>
 #else
 // Add uC standard types header
 // Add uC stddef header (or at least, define NULL)
-// Define uC malloc(...) and free(...) 
 #endif /* TEST */
 
 #include "bme68x/bme68x.h"
@@ -34,7 +32,9 @@ typedef enum {
 } sensors_status_t;
 
 typedef struct {
-    struct bme68x_dev* p_bme_dev;               /* BME68x device */
+    struct bme68x_dev bme_dev;                  /* BME68x device */
+
+    uint8_t _bme_dev_addr;                      /* [Internal] BME68x I2C address */
 } sensors_config_t;
 
 #endif /* SENSORS_DEFS_H */

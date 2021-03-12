@@ -2,7 +2,6 @@
 
 #include <string.h>
 #include <stdint.h>
-#include <malloc.h>
 
 #include "unity.h"
 
@@ -36,20 +35,24 @@ test_sensors_InitOk() {
     bme68x_set_heatr_conf_ExpectAnyArgsAndReturn(BME68X_OK);
 
     TEST_ASSERT_EQUAL(SENSORS_OK, sensors_init(&sensors));
-    TEST_ASSERT_MESSAGE(sensors.p_bme_dev != NULL, "bme68x device struct not created!");
 }
 
 void
-test_sensors_InitInputErr() {
-    /* If the given sensors_config_t is not valid, It should fail */
+test_sensors_InitOkChkHAL() {
+    /* Check if bme68x_dev has valid pointers to the HAL functions */
     sensors_config_t sensors;
-    struct bme68x_dev bme_dev;
 
     memset(&sensors, 0, sizeof(sensors_config_t));
-    sensors.p_bme_dev = &bme_dev;
 
-    TEST_ASSERT_EQUAL(SENSORS_IN_USE_ERR, sensors_init(&sensors));
-    TEST_ASSERT_EQUAL_MESSAGE(&bme_dev, sensors.p_bme_dev, "bme68x device changed!");
+    sensors_hal_init_ExpectAndReturn(BME68X_OK);
+    bme68x_init_ExpectAnyArgsAndReturn(BME68X_OK);
+    bme68x_set_conf_ExpectAnyArgsAndReturn(BME68X_OK);
+    bme68x_set_heatr_conf_ExpectAnyArgsAndReturn(BME68X_OK);
+
+    TEST_ASSERT_EQUAL(SENSORS_OK, sensors_init(&sensors));
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(sensors.bme_dev.read, NULL, "HAL read not set!");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(sensors.bme_dev.write, NULL, "HAL write not set!");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(sensors.bme_dev.delay_us, NULL, "HAL delay not set!");
 }
 
 void
@@ -65,14 +68,12 @@ test_sensors_InitBMEError() {
     bme68x_init_ExpectAnyArgsAndReturn(BME68X_E_COM_FAIL);
 
     TEST_ASSERT_EQUAL(SENSORS_ERR, sensors_init(&sensors1));
-    TEST_ASSERT_MESSAGE(sensors1.p_bme_dev == NULL, "bme68x device struct [1] not NULL!");
 
     sensors_hal_init_ExpectAndReturn(BME68X_OK);
     bme68x_init_ExpectAnyArgsAndReturn(BME68X_OK);
     bme68x_set_conf_ExpectAnyArgsAndReturn(BME68X_E_COM_FAIL);
 
     TEST_ASSERT_EQUAL(SENSORS_ERR, sensors_init(&sensors2));
-    TEST_ASSERT_MESSAGE(sensors2.p_bme_dev == NULL, "bme68x device struct [2] not NULL!");
 
     sensors_hal_init_ExpectAndReturn(BME68X_OK);
     bme68x_init_ExpectAnyArgsAndReturn(BME68X_OK);
@@ -80,7 +81,6 @@ test_sensors_InitBMEError() {
     bme68x_set_heatr_conf_ExpectAnyArgsAndReturn(BME68X_E_COM_FAIL);
 
     TEST_ASSERT_EQUAL(SENSORS_ERR, sensors_init(&sensors3));
-    TEST_ASSERT_MESSAGE(sensors3.p_bme_dev == NULL, "bme68x device struct [3] not NULL!");
 }
 
 void
@@ -93,7 +93,6 @@ test_sensors_InitHALError() {
     sensors_hal_init_ExpectAndReturn(SENSORS_ERR);
 
     TEST_ASSERT_EQUAL(SENSORS_HAL_ERR, sensors_init(&sensors));
-    TEST_ASSERT_MESSAGE(sensors.p_bme_dev == NULL, "bme68x device struct not NULL!");
 }
 
 void
@@ -101,16 +100,7 @@ test_sensors_DeinitOk() {
     /* If sensors_deinit(...) call is valid, the config pointers should be NULL  */
     sensors_config_t sensors;
 
-    memset(&sensors, 0, sizeof(sensors_config_t));
-    
-    struct bme68x_dev* p_bme_dev = (struct bme68x_dev*)malloc(sizeof(struct bme68x_dev));
-    uint8_t* p_bme_dev_i2c_addr = (uint8_t*)malloc(sizeof(uint8_t));
-
-    sensors.p_bme_dev = p_bme_dev;
-    sensors.p_bme_dev->intf_ptr = p_bme_dev_i2c_addr;
-
     TEST_ASSERT_EQUAL(SENSORS_OK, sensors_deinit(&sensors));
-    TEST_ASSERT_MESSAGE(sensors.p_bme_dev == NULL, "bme68x device struct not NULL!");
 }
 
 #endif /* TEST */

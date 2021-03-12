@@ -18,43 +18,25 @@ sensors_init(sensors_config_t* p_config) {
     struct bme68x_conf bme_conf;
     struct bme68x_heatr_conf bme_heater_conf;
 
-    /* Check if the BME device already has been initialized */
-    if (p_config->p_bme_dev != NULL) {
-        return SENSORS_IN_USE_ERR;
-    }
-
     /* HAL init */
     if (sensors_hal_init() != SENSORS_OK) {
         sensors_deinit(p_config);
         return SENSORS_HAL_ERR;
     }
 
-    /* Mem. alloc */
-    p_config->p_bme_dev = (struct bme68x_dev*)malloc(sizeof(struct bme68x_dev));
-    if (p_config->p_bme_dev == NULL) {
-        sensors_deinit(p_config);
-        return SENSORS_MEM_ERR;
-    }
-
-    p_bme_dev_i2c_addr = (uint8_t*)malloc(sizeof(uint8_t));
-    if (p_bme_dev_i2c_addr == NULL) {
-        sensors_deinit(p_config);
-        return SENSORS_MEM_ERR;
-    }
-
-    *p_bme_dev_i2c_addr = SENSORS_BME68X_I2C_ADDR;
+    p_config->_bme_dev_addr = SENSORS_BME68X_I2C_ADDR;
 
     /* Setup specific uC functions */
-    p_config->p_bme_dev->read     = &bme68x_i2c_read;
-    p_config->p_bme_dev->write    = &bme68x_i2c_write;
-    p_config->p_bme_dev->delay_us = &bme68x_delay_us;
+    p_config->bme_dev.read     = &bme68x_i2c_read;
+    p_config->bme_dev.write    = &bme68x_i2c_write;
+    p_config->bme_dev.delay_us = &bme68x_delay_us;
 
     /* Config device */
-    p_config->p_bme_dev->intf     = BME68X_I2C_INTF;
-    p_config->p_bme_dev->intf_ptr = p_bme_dev_i2c_addr;
-    p_config->p_bme_dev->amb_temp = SENSORS_AMBIENT_TEMP;
+    p_config->bme_dev.intf     = BME68X_I2C_INTF;
+    p_config->bme_dev.intf_ptr = &(p_config->_bme_dev_addr);
+    p_config->bme_dev.amb_temp = SENSORS_AMBIENT_TEMP;
 
-    bme_result = bme68x_init(p_config->p_bme_dev);
+    bme_result = bme68x_init(&(p_config->bme_dev));
     if (bme_result != BME68X_OK) {
         sensors_deinit(p_config);
         return SENSORS_ERR;
@@ -66,7 +48,7 @@ sensors_init(sensors_config_t* p_config) {
     bme_conf.os_hum  = BME68X_OS_16X;           /* Oversampling de humedad */
     bme_conf.os_pres = BME68X_OS_1X;            /* Oversampling de presión */
     bme_conf.os_temp = BME68X_OS_2X;            /* Oversampling de temperatura */
-    bme_result = bme68x_set_conf(&bme_conf, p_config->p_bme_dev);
+    bme_result = bme68x_set_conf(&bme_conf, &(p_config->bme_dev));
     if (bme_result != BME68X_OK) {
         sensors_deinit(p_config);
         return SENSORS_ERR;
@@ -76,7 +58,7 @@ sensors_init(sensors_config_t* p_config) {
     bme_heater_conf.enable     = BME68X_ENABLE; /* Permite mediciones de gas */
     bme_heater_conf.heatr_temp = 300;           /* Temperatura */
     bme_heater_conf.heatr_dur  = 100;           /* Duración */
-    bme_result = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &bme_heater_conf, p_config->p_bme_dev);
+    bme_result = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &bme_heater_conf, &(p_config->bme_dev));
     if (bme_result != BME68X_OK) {
         sensors_deinit(p_config);
         return SENSORS_ERR;
@@ -88,15 +70,5 @@ sensors_init(sensors_config_t* p_config) {
 
 sensors_status_t
 sensors_deinit(sensors_config_t* p_config) {
-    if (p_config->p_bme_dev != NULL) {
-        if (p_config->p_bme_dev->intf_ptr != NULL) {
-            free(p_config->p_bme_dev->intf_ptr);
-            p_config->p_bme_dev->intf_ptr = NULL;
-        }
-
-        free(p_config->p_bme_dev);
-        p_config->p_bme_dev = NULL;
-    }
-
     return SENSORS_OK;
 }
