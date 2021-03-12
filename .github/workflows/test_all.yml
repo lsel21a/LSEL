@@ -1,0 +1,22 @@
+name: Ceedling search and test all
+
+on: workflow_dispatch
+
+jobs:
+  test_all:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install ruby & gcovr
+        run: sudo apt-get -y install ruby gcovr
+
+      - name: Install ceedling
+        run: sudo gem install ceedling
+
+      - name: Test all
+        run: sh .github/scripts/ceedling_test_all.sh
+
+      # - name: Coverage analysis
+      #   run: sh .github/scripts/ceedling_gcov_all.sh

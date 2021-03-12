@@ -1,0 +1,43 @@
+name: Test and code coverage for the "baliza"
+
+on:
+  push:
+    branches:
+      - master
+      - devel*
+
+  pull_request:
+    branches:
+      - master
+      - devel*
+
+  workflow_dispatch:
+
+jobs:
+  test_coverage_baliza:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install ruby & gcovr
+        run: sudo apt-get -y install ruby gcovr
+
+      - name: Install ceedling
+        run: sudo gem install ceedling
+
+      - name: Test all
+        run: |
+          cd baliza
+          ceedling test:all
+
+      - name: Gen code coverage
+        run: |
+          cd baliza
+          ceedling gcov:all utils:gcov
+
+      - name: Push to codecov
+        run: |
+          export CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN }}
+          cd baliza
+          bash <(curl -s https://codecov.io/bash)
