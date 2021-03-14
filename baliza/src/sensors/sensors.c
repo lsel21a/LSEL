@@ -9,6 +9,7 @@
 #include "sensors_hal.h"
 #include "sensors_defs.h"
 
+#include "bme68x/bme68x_defs.h"
 
 sensors_status_t
 sensors_init(sensors_config_t* p_config) {
@@ -24,7 +25,14 @@ sensors_init(sensors_config_t* p_config) {
         return SENSORS_HAL_ERR;
     }
 
-    p_config->_bme_dev_addr = SENSORS_BME68X_I2C_ADDR;
+    if (p_config->sensors_select == SENSORS_SELECT1) {
+        p_config->_bme_dev_addr = BME68X_I2C_ADDR_LOW;
+    } else if (p_config->sensors_select == SENSORS_SELECT2) {
+        p_config->_bme_dev_addr = BME68X_I2C_ADDR_HIGH;
+    } else {
+        sensors_deinit(p_config);
+        return SENSORS_SELECT_NOT_VALID;
+    }
 
     /* Setup specific uC functions */
     p_config->bme_dev.read     = &bme68x_i2c_read;
