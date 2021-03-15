@@ -1,4 +1,4 @@
-name: Test and code coverage for "baliza"
+name: baliza - Test and code coverage
 
 on:
   push:
