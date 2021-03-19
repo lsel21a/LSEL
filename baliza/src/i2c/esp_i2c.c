@@ -1,31 +1,5 @@
 #include "esp_i2c.h"
 
-uint8_t i2c_driver_init(){
-
-    i2c_config_t conf = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = I2C_SDA_PIN,         // select GPIO specific to your project
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_io_num = I2C_SCL_PIN,         // select GPIO specific to your project
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = I2C_MASTER_FREQ_HZ,  // select frequency specific to your project
-        // .clk_flags = 0,          /*!< Optional, you can use I2C_SCLK_SRC_FLAG_* flags to choose i2c source clock here. */
-    };
-
-    uint8_t rslt =  i2c_param_config(I2C_NUM_1, &conf);
-    if (rslt != ESP_OK){
-        printf("Configuración de parámetros.\n");
-        check_rslt(rslt);
-    }
-    
-    rslt = i2c_driver_install(I2C_NUM_1, I2C_MODE_MASTER, 0, 0, ESP_INTR_FLAG_INTRDISABLED);
-    if (rslt != ESP_OK){
-        printf("Instalación de drivers.\n");
-        check_rslt(rslt);
-    }
-    return rslt;
-}
-
 void check_rslt(int rslt){
     switch (rslt){
         case ESP_OK:
@@ -78,10 +52,74 @@ void check_rslt(int rslt){
     }
 };
 
-int i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t timeout){
+uint8_t i2c_init(){
+
+    i2c_config_t conf = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = I2C_SDA_PIN,         // select GPIO specific to your project
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_io_num = I2C_SCL_PIN,         // select GPIO specific to your project
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .master.clk_speed = I2C_MASTER_FREQ_HZ,  // select frequency specific to your project
+        // .clk_flags = 0,          /*!< Optional, you can use I2C_SCLK_SRC_FLAG_* flags to choose i2c source clock here. */
+    };
+
+    uint8_t rslt =  i2c_param_config(I2C_PORT, &conf);
+    if (rslt != ESP_OK){
+        printf("Configuración de parámetros.\n");
+        check_rslt(rslt);
+    }
+    
+    return rslt;
+}
+
+uint8_t i2c_detect()
+{
+    int rslt;
+    rslt = i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0);
+    if (rslt != ESP_OK){
+        printf("Instalación de drivers.\n");
+        check_rslt(rslt);
+    }
+    uint8_t address;
+    printf("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\r\n");
+    for (int i = 0; i < 128; i += 16) {
+        printf("%02x: ", i);
+        for (int j = 0; j < 16; j++) {
+            fflush(stdout);
+            address = i + j;
+            i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+            i2c_master_start(cmd);
+            i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE, true);
+            i2c_master_stop(cmd);
+            esp_err_t ret = i2c_master_cmd_begin(I2C_PORT, cmd, 50 / portTICK_RATE_MS);
+            i2c_cmd_link_delete(cmd);
+            if (ret == ESP_OK) {
+                printf("%02x ", address);
+            } else if (ret == ESP_ERR_TIMEOUT) {
+                printf("UU ");
+            } else {
+                printf("-- ");
+            }
+        }
+        printf("\r\n");
+    }
+
+    i2c_driver_delete(I2C_PORT);
+    return 0;
+}
+
+uint8_t i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t timeout){
     
     int rslt;
     i2c_cmd_handle_t cmd;
+
+    // Instalación de driver
+    rslt = i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0);
+    if (rslt != ESP_OK){
+        printf("Instalación de drivers.\n");
+        check_rslt(rslt);
+    }
 
     // Creación del comando
     cmd = i2c_cmd_link_create();
@@ -95,12 +133,20 @@ int i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t t
     
 
     // Se escribe la dirección del esclavo    
-    rslt = i2c_master_write_byte(cmd, dev_addr, true);
+    rslt = i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE , true);
     if (rslt != ESP_OK){
         printf("Escritura de la dirección del esclavo.\n");
         check_rslt(rslt);
     }
 
+    int i;
+    for (i=0;i<data_size;i++){
+        rslt = i2c_master_write_byte(cmd, data[i] , true);
+        if (rslt != ESP_OK){
+            printf("Escritura de dato %d.\n", i+1);
+            check_rslt(rslt);
+        }
+    }
 
     // Se escriben los datos que se deseen
     rslt = i2c_master_write(cmd, (uint8_t *) &data, data_size, true);
@@ -117,7 +163,7 @@ int i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t t
     } 
     
     // Se realiza el envío
-    rslt = i2c_master_cmd_begin(I2C_NUM_1, cmd, timeout);
+    rslt = i2c_master_cmd_begin(I2C_PORT, cmd, timeout/portTICK_PERIOD_MS);
     if (rslt != ESP_OK){
         printf("Ejecución de los comandos.\n");
         check_rslt(rslt);
@@ -126,12 +172,22 @@ int i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t t
     // Se finaliza la comunicación
     i2c_cmd_link_delete(cmd);
 
+    // Se elimina el driver
+    i2c_driver_delete(I2C_PORT);
+
     return ESP_OK;
 }
 
-int i2c_recv_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t timeout){
+uint8_t i2c_recv_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t timeout){
     int rslt;
     i2c_cmd_handle_t cmd;
+
+    // Instalación de driver
+    rslt = i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0);
+    if (rslt != ESP_OK){
+        printf("Instalación de drivers.\n");
+        check_rslt(rslt);
+    }
 
     // Creación del comando
     cmd = i2c_cmd_link_create();
@@ -144,7 +200,7 @@ int i2c_recv_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t t
     }
 
     // Se escribe la dirección del esclavo
-    rslt = i2c_master_write_byte(cmd, dev_addr, true);
+    rslt = i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_READ, true);
     if (rslt != ESP_OK){
         printf("Escritura de la dirección del esclavo.\n");
         check_rslt(rslt);
@@ -174,7 +230,7 @@ int i2c_recv_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t t
     }
     
     // Se realiza el envío
-    rslt = i2c_master_cmd_begin(I2C_NUM_1, cmd, timeout);
+    rslt = i2c_master_cmd_begin(I2C_PORT, cmd, timeout/portTICK_PERIOD_MS);
     if (rslt != ESP_OK){
         printf("Ejecución del comando.\n");
         check_rslt(rslt);
@@ -182,6 +238,9 @@ int i2c_recv_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t t
 
     // Se finaliza la comunicación
     i2c_cmd_link_delete(cmd);
+
+    // Se elimina el driver
+    i2c_driver_delete(I2C_PORT);
 
     return ESP_OK;
 }
