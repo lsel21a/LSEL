@@ -73,8 +73,10 @@ uint8_t i2c_init(){
     return rslt;
 }
 
-uint8_t i2c_detect()
-{
+uint8_t i2c_detect(){
+
+    i2c_init();
+
     int rslt;
     rslt = i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0);
     if (rslt != ESP_OK){
@@ -114,6 +116,9 @@ uint8_t i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32
     int rslt;
     i2c_cmd_handle_t cmd;
 
+    // Inicialización del I2C
+    i2c_init();
+
     // Instalación de driver
     rslt = i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0);
     if (rslt != ESP_OK){
@@ -137,15 +142,6 @@ uint8_t i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32
     if (rslt != ESP_OK){
         printf("Escritura de la dirección del esclavo.\n");
         check_rslt(rslt);
-    }
-
-    int i;
-    for (i=0;i<data_size;i++){
-        rslt = i2c_master_write_byte(cmd, data[i] , true);
-        if (rslt != ESP_OK){
-            printf("Escritura de dato %d.\n", i+1);
-            check_rslt(rslt);
-        }
     }
 
     // Se escriben los datos que se deseen
@@ -181,6 +177,9 @@ uint8_t i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32
 uint8_t i2c_recv_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32_t timeout){
     int rslt;
     i2c_cmd_handle_t cmd;
+
+    // Inicialización del I2C
+    i2c_init();
 
     // Instalación de driver
     rslt = i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0);

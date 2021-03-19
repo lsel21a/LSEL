@@ -3,7 +3,6 @@
 BME68X_INTF_RET_TYPE bme68x_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr){
 
     uint8_t dev_addr = *(uint8_t*)intf_ptr;
-    dev_addr = (dev_addr << 1) | I2C_MASTER_WRITE;
 
     // Se contruye la trama que hay que enviar al sensor
     // Para más información consultar datasheet de BME680
@@ -22,10 +21,7 @@ BME68X_INTF_RET_TYPE bme68x_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32
     // Se contruye la trama que hay que enviar al sensor
     // Para más información consultar datasheet de BME680
     uint8_t dev_addr = *(uint8_t*)intf_ptr;
-    dev_addr = (dev_addr << 1) | I2C_MASTER_WRITE;
     i2c_send_data(dev_addr, (uint8_t *) &reg_addr, (uint16_t)len, 10);
-
-    dev_addr = (dev_addr << 1) | I2C_MASTER_READ;
     return i2c_recv_data(dev_addr, reg_data, (uint16_t) len, 10)!= ESP_OK;
 }
 
@@ -35,16 +31,29 @@ uint32_t micros()
 }
 
 void delay_us (uint32_t timeout_us) {
+    
     uint32_t us_act = micros();
+    uint8_t rslt;
+
     if(timeout_us){
         uint32_t wait = (us_act + timeout_us);
         if(us_act > wait){ // Overflow
             while(micros() > timeout_us){
                 // Espera hasta que pase el tiempo ( 0 + timeout)
+                rslt = esp_task_wdt_reset();
+                if (rslt != ESP_OK){
+                    printf("Reset del watchdog.\n");
+                    check_rslt(rslt);
+                }
             }
         }
         while(micros() < wait){
             // Espera hasta que pase el tiempo deseado (act + timeout)
+            rslt = esp_task_wdt_reset();
+            if (rslt != ESP_OK){
+                printf("Reset del watchdog.\n");
+                check_rslt(rslt);
+            }
         }
     }
 }
@@ -67,7 +76,7 @@ int8_t bme68x_interface_init(struct bme68x_dev *bme, uint8_t intf){
             bme->read = bme68x_i2c_read;
             bme->write = bme68x_i2c_write;
             bme->intf = BME68X_I2C_INTF;
-            i2c_driver_init();
+            i2c_init();
         }
 
         bme->delay_us = bme68x_delay_us;
