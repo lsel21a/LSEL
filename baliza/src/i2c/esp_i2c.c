@@ -75,6 +75,7 @@ uint8_t i2c_init(){
 
 uint8_t i2c_detect(){
 
+    // Inicialización del I2C
     i2c_init();
 
     int rslt;
@@ -122,7 +123,7 @@ uint8_t i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32
     // Instalación de driver
     rslt = i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0);
     if (rslt != ESP_OK){
-        printf("Instalación de drivers.\n");
+        printf("Instalación de drivers[send].\n");
         check_rslt(rslt);
     }
 
@@ -132,7 +133,7 @@ uint8_t i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32
     // Inicialización en modo máster
     rslt = i2c_master_start(cmd);
     if (rslt != ESP_OK){
-        printf("Inicialización en modo máster.\n");
+        printf("Inicialización en modo máster[send].\n");
         check_rslt(rslt);
     }
     
@@ -140,28 +141,28 @@ uint8_t i2c_send_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32
     // Se escribe la dirección del esclavo    
     rslt = i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE , true);
     if (rslt != ESP_OK){
-        printf("Escritura de la dirección del esclavo.\n");
+        printf("Escritura de la dirección del esclavo[send].\n");
         check_rslt(rslt);
     }
 
     // Se escriben los datos que se deseen
-    rslt = i2c_master_write(cmd, (uint8_t *) &data, data_size, true);
+    rslt = i2c_master_write(cmd, (uint8_t *) data, data_size, true);
     if (rslt != ESP_OK){
-        printf("Escritura de datos.\n");
+        printf("Escritura de datos[send].\n");
         check_rslt(rslt);
     }
 
     // Envío de la señal de stop
     rslt = i2c_master_stop(cmd);
     if (rslt != ESP_OK){
-        printf("Escritura del bit de stop.\n");
+        printf("Escritura del bit de stop[send].\n");
         check_rslt(rslt);
     } 
     
     // Se realiza el envío
     rslt = i2c_master_cmd_begin(I2C_PORT, cmd, timeout/portTICK_PERIOD_MS);
     if (rslt != ESP_OK){
-        printf("Ejecución de los comandos.\n");
+        printf("Ejecución de los comandos[send].\n");
         check_rslt(rslt);
     }
 
@@ -184,7 +185,7 @@ uint8_t i2c_recv_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32
     // Instalación de driver
     rslt = i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0);
     if (rslt != ESP_OK){
-        printf("Instalación de drivers.\n");
+        printf("Instalación de drivers[recv].\n");
         check_rslt(rslt);
     }
 
@@ -194,44 +195,44 @@ uint8_t i2c_recv_data(uint8_t dev_addr, uint8_t *data, uint8_t data_size, uint32
     // Inicialización en modo máster
     rslt = i2c_master_start(cmd);
     if (rslt != ESP_OK){
-        printf("Inicialización en modo máster.\n");
+        printf("Inicialización en modo máster[recv].\n");
         check_rslt(rslt);
     }
 
     // Se escribe la dirección del esclavo
     rslt = i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_READ, true);
     if (rslt != ESP_OK){
-        printf("Escritura de la dirección del esclavo.\n");
+        printf("Escritura de la dirección del esclavo[recv].\n");
         check_rslt(rslt);
     }
 
     // Se leen los datos que se deseen (n - 1) con ACK
     if (data_size > 1){
-        rslt = i2c_master_read(cmd,(uint8_t *)  &data, data_size-1, true);
+        rslt = i2c_master_read(cmd, (uint8_t *) data, data_size-1, true);
         if (rslt != ESP_OK){
-            printf("Lectura de datos con ACK.\n");
+            printf("Lectura de datos con ACK[recv].\n");
             check_rslt(rslt);
         }
     }
 
     // Se escriben los datos que se deseen sin ACK
-    rslt = i2c_master_read(cmd, (uint8_t *) &data, 1, false);
+    rslt = i2c_master_read_byte(cmd, (uint8_t *) &data[data_size-1], false);
     if (rslt != ESP_OK){
-        printf("Lectura de datos sin ACK.\n");
+        printf("Lectura de datos sin ACK[recv].\n");
         check_rslt(rslt);
     }
 
     // Envío de la señal de stop
     rslt = i2c_master_stop(cmd);
     if (rslt != ESP_OK){
-        printf("Finalización del comando.\n");
+        printf("Finalización del comando[recv].\n");
         check_rslt(rslt);
     }
     
     // Se realiza el envío
     rslt = i2c_master_cmd_begin(I2C_PORT, cmd, timeout/portTICK_PERIOD_MS);
     if (rslt != ESP_OK){
-        printf("Ejecución del comando.\n");
+        printf("Ejecución del comando[recv].\n");
         check_rslt(rslt);
     }
 
