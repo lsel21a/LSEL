@@ -13,7 +13,7 @@ BME68X_INTF_RET_TYPE bme68x_i2c_write(uint8_t reg_addr, const uint8_t *reg_data,
     	data2send[i] = reg_data[i-1];
     };
 
-    return i2c_send_data(dev_addr, (uint8_t *) &data2send, (uint16_t)(len+1), 10) != ESP_OK;
+    return i2c_send_data(dev_addr, (uint8_t *) data2send, (uint16_t)(len+1), 10) != ESP_OK;
 }
 
 BME68X_INTF_RET_TYPE bme68x_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr){
@@ -21,7 +21,7 @@ BME68X_INTF_RET_TYPE bme68x_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32
     // Se contruye la trama que hay que enviar al sensor
     // Para más información consultar datasheet de BME680
     uint8_t dev_addr = *(uint8_t*)intf_ptr;
-    i2c_send_data(dev_addr, (uint8_t *) &reg_addr, (uint16_t)len, 10);
+    i2c_send_data(dev_addr, (uint8_t *) &reg_addr, (uint16_t)1, 10);
     return i2c_recv_data(dev_addr, reg_data, (uint16_t) len, 10)!= ESP_OK;
 }
 
