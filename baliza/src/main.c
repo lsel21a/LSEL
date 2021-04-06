@@ -5,12 +5,15 @@
 
 static void fsm_sensor_task(void *arg)
 {
+  fsm_t f;
 
-  fsm_t* my_fsm = fsm_new (sensores_tt);
+  fsm_init_sensores(&f); 
+
+//  fsm_t* my_fsm = fsm_new (sensores_tt);
   
   while (1) {
 
-    fsm_fire (my_fsm);
+    fsm_fire ((fsm_t*)(&f));
 
   }
 
@@ -21,11 +24,15 @@ static void fsm_sensor_task(void *arg)
 static void fsm_deteccion_task(void *arg)
 {
 
-  fsm_t* my_fsm = fsm_new (DeteccionIncendio);
+  fsm_deteccion_incendio_t f;
+
+  fsm_deteccion_incendio_init ( &f, NULL, NULL, NULL);
+
+//  fsm_t* my_fsm = fsm_new (sensores_tt);
   
   while (1) {
 
-    fsm_fire (my_fsm);
+    fsm_fire ((fsm_t*)(&f));
 
   }
 

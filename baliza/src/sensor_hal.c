@@ -7,7 +7,7 @@
 
 #include "sensor_hal.h"
 #include "sensor_defs.h"
-#include "bme68x/bme68x.h"
+#include "bme68x.h"
 
 
 sensors_status_t

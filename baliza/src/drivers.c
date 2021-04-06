@@ -1,27 +1,70 @@
 #include "drivers.h"
 
-int checkStart_ON(fsm_t *this){
+static bool deadline = false;
+static bool valores_sensores = false;
+static bool datos_validos = false;
+static bool Start = false;
 
-    //hay que implementar comunicacion entre fsm (tareas en FreeRTOS)
-    return Start;
+
+int checkStart_ON(fsm_t *this)
+{
+    
+   if( muestreoRapidoQueue != 0 )
+   {
+        bool * rxMuestreoRapido;
+        bool muestreo_rapido = false;
+        TickType_t xDelay;
+
+       // Receive a message on the created queue.  If a
+       // message is not immediately available we use the default sampling period.
+       if( xQueueReceive( muestreoRapidoQueue, &( rxMuestreoRapido ), ( TickType_t ) 0))       //( TickType_t ) 10 ) )
+       {
+           // rxDatoValido now points to the bool variable posted by LecturaFinalizadaOK from fsm_sensores (drivers.c file).
+           if( * rxMuestreoRapido == true )
+            {
+                muestreo_rapido = true;
+            }
+            else
+            {
+                muestreo_rapido = false;
+            }
+       }
+
+       if(muestreo_rapido == true)
+       {
+           xDelay= 2000 / portTICK_PERIOD_MS;
+           vTaskDelay( xDelay );
+           return 1;
+       }
+       else
+       {
+           xDelay= 15000 / portTICK_PERIOD_MS;
+           vTaskDelay( xDelay );
+           return 1;
+       }
+   }
+   else
+   {
+       return 0;
+   }
 
 }
 
 void Activa_Sensores(fsm_t *this){
 
-    sensors_status_t result;
+    //sensors_status_t result;
 
-    if(sensors_init(devices[0]) != SENSORS_OK)
+    if(sensors_init(&devices[0]) != SENSORS_OK)
     {
         //printf(result)?;
     }
     
-    if(sensors_init(devices[1]) != SENSORS_OK)
+    if(sensors_init(&devices[1]) != SENSORS_OK)
     {
         //printf(result)?;
     }
     
-    if(sensors_init(devices[2]) != SENSORS_OK)
+    if(sensors_init(&devices[2]) != SENSORS_OK)
     {
         //printf(result)?;
     }
@@ -39,17 +82,17 @@ void Lectura_Sensores(fsm_t *this){
 
     deadline = false;
 
-    if(get_data(devices[0]) != SENSORS_OK)
+    if(get_data(&devices[0]) != SENSORS_OK)
     {
         //printf(result)?
     }
 
-    if(get_data(devices[1]) != SENSORS_OK)
+    if(get_data(&devices[1]) != SENSORS_OK)
     {
         //printf(result)?
     }
 
-    if(get_data(devices[2]) != SENSORS_OK)
+    if(get_data(&devices[2]) != SENSORS_OK)
     {
         //printf(result)?
     }
@@ -64,7 +107,7 @@ int LecturaFinalizadaOK(fsm_t *this){
 
     if( datoValidoQueue != 0 )
     {
-        DatoValido = true;
+        bool DatoValido = true;
         // Send a bool (datoValido) to fsm_deteccion_incendio. 
         if( xQueueGenericSend( datoValidoQueue, ( void * ) &DatoValido, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
         {
@@ -78,6 +121,7 @@ int LecturaFinalizadaOK(fsm_t *this){
     else
     {
         //printf("Error: queue of dato valido is not correctly open\n");
+        return 0;
     }
 	
 }
@@ -108,17 +152,17 @@ void Apagar_Sensores(fsm_t *this){
     
     datos_validos = false;
 
-    if(sleep_data(devices[0]) != SENSORS_OK)
+    if(sleep_data(&devices[0]) != SENSORS_OK)
     {
         //printf(result)?
     }
 
-    if(sleep_data(devices[1]) != SENSORS_OK)
+    if(sleep_data(&devices[1]) != SENSORS_OK)
     {
         //printf(result)?
     }
 
-    if(sleep_data(devices[2]) != SENSORS_OK)
+    if(sleep_data(&devices[2]) != SENSORS_OK)
     {
         //printf(result)?
     }

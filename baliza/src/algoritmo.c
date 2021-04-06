@@ -8,8 +8,8 @@
 #include "fsm.h"
 #include "algoritmo.h"
 
-#define Tmax 60
-#define Gmax 40
+#define Tmax 65
+#define Gmax 74 //niveles de monoxido y dioxido de carbono
 #define Hmin 20
 #define Datos_N 3
 
