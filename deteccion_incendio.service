@@ -1,0 +1,13 @@
+[Unit]
+Description=RPi client que lee los mensajes de las balizas
+After=network-online.target
+
+[Service]
+User=root
+Group=root
+ExecStart=/bin/python3 /home/pi/client/client.py
+KillMode=control-group
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
