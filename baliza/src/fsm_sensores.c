@@ -2,9 +2,6 @@
 #include "drivers.h"
 #include <stddef.h>
 
-
-
-
 static fsm_trans_t sensores_tt[] = {
     {IDLE, checkStart_ON, MEDIDAS, Activa_Sensores},
     {MEDIDAS, Deadline, LECTURA, Lectura_Sensores},
@@ -13,11 +10,14 @@ static fsm_trans_t sensores_tt[] = {
     {-1, NULL, -1, NULL}
 };
 
+void fsm_init_sensores(fsm_sensores_t *this, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *tickQueue){
 
-void fsm_init_sensores(fsm_t *this){
+    fsm_init((fsm_t *)this, sensores_tt);
+    this->datosSensoresQueue = datoValidoQueue;
+    this->datoValidoQueue = datosSensoresQueue;
+    this->tickQueue = tickQueue;
+    printf("FSM sensores inicializada.\n");
 
-    fsm_init(this, sensores_tt);
-   
 }
 
 

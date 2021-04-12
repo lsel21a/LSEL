@@ -12,9 +12,11 @@ enum{
     VALIDACION
 };
 
-void fsm_init_sensores(fsm_t *this); 
+typedef struct _fsm_sensores{
+    fsm_t fsm;
+    QueueHandle_t *datoValidoQueue, *datosSensoresQueue, *tickQueue;
+}fsm_sensores_t;
 
-static fsm_trans_t sensores_tt[];
-
+void fsm_init_sensores(fsm_sensores_t *this, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *tickQueue); 
 
 #endif  

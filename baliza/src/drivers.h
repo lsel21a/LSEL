@@ -1,12 +1,11 @@
 #ifndef DRIVERS_H
 #define DRIVERS_H
 
-#include "fsm.h"
-#include "sensor_defs.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "sensor.h"
+#include "fsm_sensores.h"
 #include <stdbool.h>
 
 //bool DatoValido = false;
@@ -15,8 +14,7 @@
 
 
 sensors_config_t devices[3];
-QueueHandle_t datoValidoQueue, datosSensoresQueue, muestreoRapidoQueue, incendioQueue;
-
+// QueueHandle_t datoValidoQueue, datosSensoresQueue, muestreoRapidoQueue, incendioQueue;
 
 int checkStart_ON(fsm_t *this);
 void Activa_Sensores(fsm_t *this);

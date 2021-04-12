@@ -8,8 +8,10 @@ static bool Start = false;
 
 int checkStart_ON(fsm_t *this)
 {
-    
-   if( muestreoRapidoQueue != 0 )
+
+    fsm_sensores_t *fp = (fsm_sensores_t*) this;
+
+   if( fp->tickQueue != 0 )
    {
         bool * rxMuestreoRapido;
         bool muestreo_rapido = false;
@@ -17,8 +19,9 @@ int checkStart_ON(fsm_t *this)
 
        // Receive a message on the created queue.  If a
        // message is not immediately available we use the default sampling period.
-       if( xQueueReceive( muestreoRapidoQueue, &( rxMuestreoRapido ), ( TickType_t ) 0))       //( TickType_t ) 10 ) )
+       if( xQueueReceive( fp->tickQueue, &( rxMuestreoRapido ), ( TickType_t ) 0))       //( TickType_t ) 10 ) )
        {
+           printf("Tick recibido en la cola.\n");
            // rxDatoValido now points to the bool variable posted by LecturaFinalizadaOK from fsm_sensores (drivers.c file).
            if( * rxMuestreoRapido == true )
             {
@@ -29,23 +32,11 @@ int checkStart_ON(fsm_t *this)
                 muestreo_rapido = false;
             }
        }
-
-       if(muestreo_rapido == true)
-       {
-           xDelay= 2000 / portTICK_PERIOD_MS;
-           vTaskDelay( xDelay );
-           return 1;
-       }
-       else
-       {
-           xDelay= 15000 / portTICK_PERIOD_MS;
-           vTaskDelay( xDelay );
-           return 1;
-       }
    }
    else
    {
-       return 0;
+        printf("Tick no recibido en la cola.\n");
+        return 0;
    }
 
 }
@@ -53,20 +44,24 @@ int checkStart_ON(fsm_t *this)
 void Activa_Sensores(fsm_t *this){
 
     //sensors_status_t result;
+    printf("Activación sensores.\n");
 
     if(sensors_init(&devices[0]) != SENSORS_OK)
     {
         //printf(result)?;
+        printf("Error en activación sensor 1.\n");
     }
     
     if(sensors_init(&devices[1]) != SENSORS_OK)
     {
         //printf(result)?;
+        printf("Error en activación sensor 2.\n");
     }
     
     if(sensors_init(&devices[2]) != SENSORS_OK)
     {
         //printf(result)?;
+        printf("Error en activación sensor 3.\n");
     }
 
     deadline = true;
@@ -74,6 +69,7 @@ void Activa_Sensores(fsm_t *this){
 
 int Deadline(fsm_t *this){
     
+    printf("Lectura deadline.\n");
     return deadline;
 
 }
@@ -81,6 +77,7 @@ int Deadline(fsm_t *this){
 void Lectura_Sensores(fsm_t *this){
 
     deadline = false;
+    printf("Lectura de los sensores.\n");
 
     if(get_data(&devices[0]) != SENSORS_OK)
     {
@@ -101,26 +98,26 @@ void Lectura_Sensores(fsm_t *this){
 
 int LecturaFinalizadaOK(fsm_t *this){
 
-    // Create a queue capable of containing 1 bool value.
-    datoValidoQueue = xQueueCreate( 1 , sizeof( bool ) );
+    fsm_sensores_t *fp = (fsm_sensores_t*) this;
 
-
-    if( datoValidoQueue != 0 )
+    if( fp->datoValidoQueue != 0 )
     {
         bool DatoValido = true;
         // Send a bool (datoValido) to fsm_deteccion_incendio. 
-        if( xQueueGenericSend( datoValidoQueue, ( void * ) &DatoValido, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
+        if( xQueueGenericSend( fp->datoValidoQueue, ( void * ) &DatoValido, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
         {
+            printf("Error en el envñio del datos válido.\n");
             // Failed to post the message.
             return 0;
         }
         else{
+            printf("Envío dato válido por cola.\n");
             return 1;
         }
     }
     else
     {
-        //printf("Error: queue of dato valido is not correctly open\n");
+        printf("Cola de dato válido no esta correctamente creada.\n");
         return 0;
     }
 	
@@ -128,10 +125,7 @@ int LecturaFinalizadaOK(fsm_t *this){
 
 void Send_Data(fsm_t *this){
 
-    // Create a queue capable of containing 10 pointers to data structures.
-    // These should be passed by pointer as they contain a lot of data.
-    datosSensoresQueue = xQueueCreate( 10, sizeof( struct bme68x_data *) );
-
+    fsm_sensores_t *fp = (fsm_sensores_t*) this;
 
     struct bme68x_data *txDataSensor;
     int i = 0;
@@ -141,9 +135,10 @@ void Send_Data(fsm_t *this){
     {
         txDataSensor = & (devices[i].data);
         // Send a pointer to each data struct of each sensor to fsm_deteccion_incendio. 
-        xQueueSend( datosSensoresQueue, ( void * ) &txDataSensor, ( TickType_t ) 0 );     
+        xQueueSend( fp->datosSensoresQueue, ( void * ) &txDataSensor, ( TickType_t ) 0 );     
     }
 
+    printf("Datos de los sensores enviados.\n");
     datos_validos = true;
 }
 
@@ -151,6 +146,7 @@ void Send_Data(fsm_t *this){
 void Apagar_Sensores(fsm_t *this){
     
     datos_validos = false;
+    printf("Apagado de los sensores.\n");
 
     if(sleep_data(&devices[0]) != SENSORS_OK)
     {
