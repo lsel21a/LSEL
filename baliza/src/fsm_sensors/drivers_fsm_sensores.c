@@ -9,20 +9,20 @@ static bool datos_validos = false;
 int checkStart_ON(fsm_t *this)
 {
     fsm_sensores_t *fp = (fsm_sensores_t*) this;
-    bool *tick;
+    bool tick = 0;
 
     if( fp->tickQueue != 0 )
     {
        // Receive a message on the created queue.  If a
        // message is not immediately available we use the default sampling period.
-       xQueueReceive(fp->tickQueue, &( tick ), ( TickType_t ) 0);
+       xQueueReceive(fp->tickQueue, &(tick), ( TickType_t ) 0);
     }
     else
     {
         printf("Tick no recibido en la cola.\n");
         return 0;
     };
-    return *tick;
+    return tick;
 };
 
 void Activa_Sensores(fsm_t *this){

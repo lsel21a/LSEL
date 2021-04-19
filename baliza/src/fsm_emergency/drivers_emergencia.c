@@ -10,98 +10,59 @@ int SolicitudDatos (fsm_t *this)
 int SenalIncendio (fsm_t* this) 
 {
     fsm_emergencia_t *fp = (fsm_emergencia_t*) this;
+    bool rxIncendio = false;
 
     if( *fp->incendioQueue != 0 )
    {
-        bool * rxIncendio;
-
        // Receive a message on the created queue.  If a
        // message is not immediately available we use the default sampling period.
-       if( xQueueReceive( *(fp->incendioQueue), &( rxIncendio ), ( TickType_t ) 0))       
-       {
-           // rxIncendio now points to the bool variable.
-           if(MODO_SILENCIOSO == 0)
-           {
-           return * rxIncendio;
-           }
-           else{
-               return 0;
-           }
-       }
-       else
-       {
-            return 0;
-       }
+       xQueueReceive( *(fp->incendioQueue), &(rxIncendio), ( TickType_t ) 0);
    }
    else
    {
        printf("Error en abrir cola receive incendio");
        return 0;
    }
-   return 0;
+   return (rxIncendio && !MODO_SILENCIOSO);
 };
 
 
 int SenalNoIncendio (fsm_t* this) 
 {
-      fsm_emergencia_t *fp = (fsm_emergencia_t*) this;
+    fsm_emergencia_t *fp = (fsm_emergencia_t*) this;
+    bool rxIncendio = true;
 
     if( *fp->incendioQueue != 0 )
    {
-        bool * rxIncendio;
-
        // Receive a message on the created queue.  If a
        // message is not immediately available we use the default sampling period.
-       if( xQueueReceive( *(fp->incendioQueue), &( rxIncendio ), ( TickType_t ) 0))       
-       {
-           // rxIncendio now points to the bool variable.
-           return !(* rxIncendio);
-       }
-       else
-       {
-            return 0;
-       }
+       xQueueReceive( *(fp->incendioQueue), &(rxIncendio), ( TickType_t ) 0);
    }
    else
    {
        printf("Error en abrir cola receive no incendio");
        return 0;
    }
-   return 0;
+   return !rxIncendio;
 };
 
 int SenalIncendioSil (fsm_t* this) 
 {
     fsm_emergencia_t *fp = (fsm_emergencia_t*) this;
+    bool rxIncendio = false;
 
     if( *fp->incendioQueue != 0 )
    {
-        bool * rxIncendio;
-
        // Receive a message on the created queue.  If a
        // message is not immediately available we use the default sampling period.
-       if( xQueueReceive( *(fp->incendioQueue), &( rxIncendio ), ( TickType_t ) 0))       
-       {
-           // rxIncendio now points to the bool variable.
-           if(MODO_SILENCIOSO == 1)
-           {
-           return * rxIncendio;
-           }
-           else{
-               return 0;
-           }
-       }
-       else
-       {
-            return 0;
-       }
+       xQueueReceive( *(fp->incendioQueue), &(rxIncendio), ( TickType_t ) 0);
    }
    else
    {
        printf("Error en abrir cola receive incendio");
        return 0;
    }
-   return 0;
+   return (rxIncendio && MODO_SILENCIOSO);
 };
 
 
@@ -115,10 +76,5 @@ void SendDatos (fsm_t* this)
 void EnvioSenalEmergencia (fsm_t* this)
 {
     //hay que implementar envio de la senal de emergencia al servidor
-    return;
-};
-
-void NoSenalEmergencia (fsm_t* this)
-{
     return;
 };

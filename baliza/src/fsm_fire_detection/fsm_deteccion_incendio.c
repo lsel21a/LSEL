@@ -22,4 +22,5 @@ void  fsm_deteccion_incendio_init ( fsm_deteccion_incendio_t *this, QueueHandle_
   this->datosSensoresQueue = datosSensoresQueue;
   this->incendioQueue = incendioQueue;
   this->muestreoRapidoQueue = muestreoRapidoQueue;
+  printf("FSM detección de incendio inicializada.\n");
 }

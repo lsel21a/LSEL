@@ -2,56 +2,31 @@
 
 int ReceiveDatoValido (fsm_t* this) 
 {
-  bool * rxDatoValido;
+  bool rxDatoValido = 0;
   fsm_deteccion_incendio_t *fp = (fsm_deteccion_incendio_t *) this;
 
   if( *(fp->datoValidoQueue) != 0 )
   {
        // Receive a message on the created queue.  Block for 10 ticks if a
        // message is not immediately available.
-       if( xQueueReceive( *(fp->datoValidoQueue), &( rxDatoValido ), portMAX_DELAY))       //( TickType_t ) 10 ) )
-       {
-           // rxDatoValido now points to the bool variable posted by LecturaFinalizadaOK from fsm_sensores (drivers.c file).
-           if( * rxDatoValido == true )
-           {
-             return 1;
-           }
-           else
-           {
-             return 0;
-           }
-       }
+       xQueueReceive( *(fp->datoValidoQueue), &(rxDatoValido), portMAX_DELAY);
   }
-  
-  return 0;
-
+  return rxDatoValido;
 }
 
 int ReceiveDatoValidoIncendio (fsm_t* this)
 {
   
-   bool * rxDatoValido;
+   bool rxDatoValido = 0;
    fsm_deteccion_incendio_t *fp = (fsm_deteccion_incendio_t *) this;
 
    if( *(fp->datoValidoQueue) != 0 )
    {
        // Receive a message on the created queue.  Block for 10 ticks if a
        // message is not immediately available.
-       if( xQueueReceive( *(fp->datoValidoQueue), &( rxDatoValido ),( TickType_t ) 10000 / portTICK_PERIOD_MS))       //( TickType_t ) 10 ) )
-       {
-           // rxDatoValido now points to the bool variable posted by LecturaFinalizadaOK from fsm_sensores (drivers.c file).
-           if( * rxDatoValido == true )
-           {
-             return 1;
-           }
-           else
-           {
-             return 0;
-           }
-       }
+       xQueueReceive( *(fp->datoValidoQueue), &(rxDatoValido),( TickType_t ) 10000 / portTICK_PERIOD_MS);
    }
-  
-   return 0;
+   return rxDatoValido;
 }
 
 int NoHayPeligro (fsm_t * this) 
@@ -108,9 +83,25 @@ void BackToIdle (fsm_t* this)
       if( xQueueGenericSend( *(fp->incendioQueue) , ( void * ) &Incendio, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
       {
           // Failed to post the message.
-          return;
       }
   }
+
+  if( *(fp->muestreoRapidoQueue) != 0 )
+  {
+      bool muestreoRapido = false;
+      // Send a bool (muestreoRapido) to fsm_sensor.
+      if( xQueueGenericSend( *(fp->muestreoRapidoQueue), (void *) &muestreoRapido, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
+      {
+          // Failed to post the message.
+      }
+      else{
+      }
+  }
+  else
+  {
+      //printf("Error: queue of dato valido is not correctly open\n");
+  }
+  return;
 }
 
 void GetMuestreoRapido (fsm_t* this)
@@ -120,8 +111,8 @@ void GetMuestreoRapido (fsm_t* this)
   if( *(fp->muestreoRapidoQueue) != 0 )
   {
       bool muestreoRapido = true;
-      // Send a bool (muestreoRapido) to fsm_sensor. 
-      if( xQueueGenericSend( *(fp->muestreoRapidoQueue), ( void * ) &muestreoRapido, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
+      // Send a bool (muestreoRapido) to fsm_sensor.
+      if( xQueueGenericSend( *(fp->muestreoRapidoQueue), (void *) &muestreoRapido, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
       {
           // Failed to post the message.
           return;
@@ -144,10 +135,26 @@ void SendDatoIncendio (fsm_t* this)
   {
       bool Incendio = true;
       // Send a bool (datoValido) to fsm_deteccion_incendio. 
-      if( xQueueGenericSend( *(fp->incendioQueue), ( void * ) &Incendio, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
+      if( xQueueGenericSend( *(fp->incendioQueue), (void *) &Incendio, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
       {
           // Failed to post the message.
-          return;
       }
   }
+
+  if( *(fp->muestreoRapidoQueue) != 0 )
+  {
+      bool muestreoRapido = false;
+      // Send a bool (muestreoRapido) to fsm_sensor.
+      if( xQueueGenericSend( *(fp->muestreoRapidoQueue), (void *) &muestreoRapido, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
+      {
+          // Failed to post the message.
+      }
+      else{
+      }
+  }
+  else
+  {
+      //printf("Error: queue of dato valido is not correctly open\n");
+  }
+  return;
 }

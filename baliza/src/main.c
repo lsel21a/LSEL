@@ -3,7 +3,7 @@
 #include "fsm_timer/fsm_timer.h"
 #include "fsm_emergency/fsm_emergencia.h"
 
-QueueHandle_t datoValidoQueue, datosSensoresQueue, tickQueue, incendioQueue, muestreoRapidoQueue, modoSilenciosoQueue;
+QueueHandle_t datoValidoQueue, datosSensoresQueue, tickQueue, incendioQueue, muestreoRapidoQueue;
 
 static void fsm_sensor_task(void *arg)
 {
@@ -54,7 +54,7 @@ static void fsm_emergencia_task(void *arg)
 {
 
   fsm_emergencia_t f;
-  fsm_emergencia_init (&f, &incendioQueue, &modoSilenciosoQueue);
+  fsm_emergencia_init (&f, &incendioQueue);
   
   while (1) {
 
@@ -64,10 +64,6 @@ static void fsm_emergencia_task(void *arg)
 
   return;
 }
-
-
-
-
 
 void app_main() 
 {
@@ -79,13 +75,12 @@ void app_main()
   tickQueue = xQueueCreate(1, sizeof(bool));
   incendioQueue = xQueueCreate(1, sizeof(bool));
   muestreoRapidoQueue = xQueueCreate(1, sizeof(bool));
-  modoSilenciosoQueue = xQueueCreate(1, sizeof(bool));
 
-  rslt = xTaskCreate(fsm_timer_task, "fsm_timer_task", 1024, NULL, 10, NULL);
+  rslt = xTaskCreate(fsm_timer_task, "fsm_timer_task", 1024, NULL, 6, NULL);
   if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
     printf("Lo vas a arreglar tú, Marcos!!!\n");
 
-  rslt = xTaskCreate(fsm_emergencia_task, "fsm_emergencia_task", 1024, NULL, 10, NULL);
+  rslt = xTaskCreate(fsm_emergencia_task, "fsm_emergencia_task", 1024, NULL, 12, NULL);
   if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
     printf("Lo vas a arreglar tú, Marcos!!!\n");
 
