@@ -1,5 +1,5 @@
 #include "fsm_sensores.h"
-#include "drivers.h"
+#include "drivers_fsm_sensores.h"
 #include <stddef.h>
 
 static fsm_trans_t sensores_tt[] = {

@@ -1,45 +1,29 @@
-#include "drivers.h"
+#include "drivers_fsm_sensores.h"
 
 static bool deadline = false;
-static bool valores_sensores = false;
+// static bool valores_sensores = false;
 static bool datos_validos = false;
-static bool Start = false;
+// static bool Start = false;
 
 
 int checkStart_ON(fsm_t *this)
 {
-
     fsm_sensores_t *fp = (fsm_sensores_t*) this;
+    bool *tick;
 
-   if( fp->tickQueue != 0 )
-   {
-        bool * rxMuestreoRapido;
-        bool muestreo_rapido = false;
-        TickType_t xDelay;
-
+    if( fp->tickQueue != 0 )
+    {
        // Receive a message on the created queue.  If a
        // message is not immediately available we use the default sampling period.
-       if( xQueueReceive( fp->tickQueue, &( rxMuestreoRapido ), ( TickType_t ) 0))       //( TickType_t ) 10 ) )
-       {
-           printf("Tick recibido en la cola.\n");
-           // rxDatoValido now points to the bool variable posted by LecturaFinalizadaOK from fsm_sensores (drivers.c file).
-           if( * rxMuestreoRapido == true )
-            {
-                muestreo_rapido = true;
-            }
-            else
-            {
-                muestreo_rapido = false;
-            }
-       }
-   }
-   else
-   {
+       xQueueReceive(fp->tickQueue, &( tick ), ( TickType_t ) 0);
+    }
+    else
+    {
         printf("Tick no recibido en la cola.\n");
         return 0;
-   }
-
-}
+    };
+    return *tick;
+};
 
 void Activa_Sensores(fsm_t *this){
 
@@ -127,17 +111,14 @@ void Send_Data(fsm_t *this){
 
     fsm_sensores_t *fp = (fsm_sensores_t*) this;
 
-    struct bme68x_data *txDataSensor;
-    int i = 0;
-    //valores_sensores = false;
-    
-    for(i=0; i<3; i++)   //3 is the size of the devices array
-    {
-        txDataSensor = & (devices[i].data);
-        // Send a pointer to each data struct of each sensor to fsm_deteccion_incendio. 
-        xQueueSend( fp->datosSensoresQueue, ( void * ) &txDataSensor, ( TickType_t ) 0 );     
-    }
+    sensors_data_t txDataSensor[NUM_SENSORS];
 
+    int i;
+    for (i=0;i<NUM_SENSORS;i++){
+        txDataSensor[i] = devices[i].data;
+    }
+    xQueueSend(fp->datosSensoresQueue, txDataSensor, ( TickType_t )0);
+    
     printf("Datos de los sensores enviados.\n");
     datos_validos = true;
 }

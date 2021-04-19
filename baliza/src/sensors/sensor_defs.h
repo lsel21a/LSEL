@@ -21,6 +21,8 @@
 
 #include "bme68x.h"
 
+#define NUM_SENSORS 3
+
 #define SENSORS_BME68X_I2C_ADDR BME68X_I2C_ADDR_LOW     /* BME68x I2C address */
 // #define SENSORS_BME68X_I2C_ADDR BME68X_I2C_ADDR_HIGH
 #define SENSORS_AMBIENT_TEMP    25                      /* Temperatura ambiente de los sensores */
@@ -43,10 +45,26 @@ typedef enum {
 } sensors_status_t;
 
 typedef struct {
+    /*! Temperature in degree celsius */
+    float temperature;
+
+    /*! Pressure in Pascal */
+    float pressure;
+
+    /*! Humidity in % relative humidity x1000 */
+    float humidity;
+
+    /*! Gas resistance in Ohms */
+    float gas_resistance;
+} sensors_data_t;
+
+typedef struct {
     struct bme68x_dev bme_dev;                  /* BME68x device */
-    struct bme68x_data data;                    /* BME68x data */        
+    sensors_data_t data;                        /* BME68x data */        
     sensors_select_t sensors_select;            /*! Sensor selection */
     uint8_t _bme_dev_addr;                      /*! [Internal] BME68x I2C address */
 } sensors_config_t;
+
+
 
 #endif /* SENSORS_DEFS_H */

@@ -1,19 +1,17 @@
-#ifndef DRIVERS_H
-#define DRIVERS_H
+#ifndef DRIVERS_FSM_SENSORES_H
+#define DRIVERS_FSM_SENSORES_H
 
+#include "fsm_sensores.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "sensor.h"
-#include "fsm_sensores.h"
+#include "sensors/sensor.h"
 #include <stdbool.h>
 
 //bool DatoValido = false;
 //bool Incendio = false;
 
-
-
-sensors_config_t devices[3];
+sensors_config_t devices[NUM_SENSORS];
 // QueueHandle_t datoValidoQueue, datosSensoresQueue, muestreoRapidoQueue, incendioQueue;
 
 int checkStart_ON(fsm_t *this);

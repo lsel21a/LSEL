@@ -13,7 +13,6 @@
 sensors_status_t
 sensors_init(sensors_config_t* p_config) {
     int8_t bme_result;
-    uint8_t* p_bme_dev_i2c_addr;
 
     struct bme68x_conf bme_conf;
     struct bme68x_heatr_conf bme_heater_conf;
@@ -79,10 +78,10 @@ sensors_status_t get_data(sensors_config_t* p_config)
 {
   int8_t rslt;
   uint8_t n_fields;
-  
 
-  rslt = bme68x_get_data(BME68X_FORCED_MODE, &p_config->data, &n_fields, &p_config->bme_dev);
+  struct bme68x_data data;  
 
+  rslt = bme68x_get_data(BME68X_FORCED_MODE, &data, &n_fields, &p_config->bme_dev);
 
   if (rslt != BME68X_OK)
   {
@@ -90,6 +89,10 @@ sensors_status_t get_data(sensors_config_t* p_config)
   }
   else
   {
+    p_config->data.temperature = data.temperature/100;
+    p_config->data.pressure = data.pressure;
+    p_config->data.humidity = data.humidity/1000;
+    p_config->data.gas_resistance = data.gas_resistance;
     return SENSORS_OK;
   }
 }
@@ -98,8 +101,10 @@ sensors_status_t sleep_data(sensors_config_t* p_config)
 {
   int8_t rslt;
   uint8_t n_fields;
+
+  struct bme68x_data data;
   
-  rslt = bme68x_get_data(BME68X_SLEEP_MODE, &p_config->data, &n_fields, &p_config->bme_dev);
+  rslt = bme68x_get_data(BME68X_SLEEP_MODE, &data, &n_fields, &p_config->bme_dev);
 
   if (rslt != BME68X_OK)
   {

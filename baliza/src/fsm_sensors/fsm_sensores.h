@@ -1,9 +1,10 @@
-#ifndef _FSM_SENSORES_H
-#define _FSM_SENSORES_H
+#ifndef FSM_SENSORES_H
+#define FSM_SENSORES_H
 
 #include "fsm.h"
-#include "sensor_defs.h"
 #include <stdbool.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 
 enum{
     IDLE,
@@ -19,4 +20,4 @@ typedef struct _fsm_sensores{
 
 void fsm_init_sensores(fsm_sensores_t *this, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *tickQueue); 
 
-#endif  
+#endif
