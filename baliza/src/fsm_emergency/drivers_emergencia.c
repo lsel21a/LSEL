@@ -4,6 +4,7 @@
 int SolicitudDatos (fsm_t *this)
 {
     //hay que implementar la recepcion de la solicitud Datos con MQTT
+    printf("Se comprueba si se han solicitado datos del servidor \n");
     return 0;
 };
 
@@ -17,6 +18,7 @@ int SenalIncendio (fsm_t* this)
        // Receive a message on the created queue.  If a
        // message is not immediately available we use the default sampling period.
        xQueueReceive( *(fp->incendioQueue), &(rxIncendio), ( TickType_t ) 0);
+       printf("Se ha recibido %d en la cola de incendio \n", rxIncendio);
    }
    else
    {
@@ -37,6 +39,7 @@ int SenalNoIncendio (fsm_t* this)
        // Receive a message on the created queue.  If a
        // message is not immediately available we use the default sampling period.
        xQueueReceive( *(fp->incendioQueue), &(rxIncendio), ( TickType_t ) 0);
+       printf("Se ha recibido %d en la cola de incendio \n", rxIncendio);
    }
    else
    {
@@ -56,6 +59,7 @@ int SenalIncendioSil (fsm_t* this)
        // Receive a message on the created queue.  If a
        // message is not immediately available we use the default sampling period.
        xQueueReceive( *(fp->incendioQueue), &(rxIncendio), ( TickType_t ) 0);
+       printf("Se ha recibido %d en la cola de incendio \n", rxIncendio);
    }
    else
    {
@@ -69,6 +73,7 @@ int SenalIncendioSil (fsm_t* this)
 void SendDatos (fsm_t* this)
 {
     //hay que implementar envio de los datos al servidor
+    printf("Se envían los datos de los sensores al servidor \n");
     return;
 };
 
@@ -76,5 +81,6 @@ void SendDatos (fsm_t* this)
 void EnvioSenalEmergencia (fsm_t* this)
 {
     //hay que implementar envio de la senal de emergencia al servidor
+    printf("Se envía la señal de emergencia al servidor \n");
     return;
 };

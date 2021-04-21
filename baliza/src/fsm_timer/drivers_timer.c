@@ -8,14 +8,13 @@ int ReceiveMuestreoRapido (fsm_t* this)
 
     if( *fp->muestreoRapidoQueue != 0 )
    {
-       // Receive a message on the created queue.  If a
-       // message is not immediately available we use the default sampling period.
+       // Receive a message on the created queue. 
        xQueueReceive( *(fp->muestreoRapidoQueue), &(rxMuestreoRapido), ( TickType_t ) 0);   
+       printf("Muestreo rapido recibido = %d. \n", rxMuestreoRapido);
    }
    else
    {
        printf("Error en abrir cola receive muestreo rapido");
-       return 0;
    }
     return rxMuestreoRapido;
 }
@@ -26,6 +25,7 @@ int WaitNormal (fsm_t* this)
 
     xDelay= 2000 / portTICK_PERIOD_MS;
     vTaskDelay( xDelay );
+    printf("Fin de espera Tick normal. \n");
     return 1;
 }
 
@@ -40,6 +40,7 @@ int ReceiveMuestreoNormal (fsm_t* this)
        // Receive a message on the created queue.  If a
        // message is not immediately available we use the default sampling period.
        xQueueReceive( *(fp->muestreoRapidoQueue), &(rxMuestreoRapido), ( TickType_t ) 0);   
+       printf("Muestreo rapido recibido = %d. \n", rxMuestreoRapido);
    }
    else
    {
@@ -53,21 +54,10 @@ int WaitRapido (fsm_t* this)
 {
     TickType_t xDelay;
 
-    xDelay= 4000 / portTICK_PERIOD_MS;
+    xDelay= 1000 / portTICK_PERIOD_MS;
     vTaskDelay( xDelay );
+    printf("Fin de espera Tick rapido. \n");
     return 1;
-}
-
-
-void SetMuestreoRapido (fsm_t* this)
-{
-    return;
-}
-
-
-void SetMuestreoNormal (fsm_t* this)
-{
-    return;
 }
 
 
@@ -83,6 +73,10 @@ void SendTick (fsm_t* this)
         {
             printf("Error en enviar el tick.\n");
             return;
+        }
+        else
+        {
+            printf("Tick enviado correctamente.\n");
         }
     }
 }

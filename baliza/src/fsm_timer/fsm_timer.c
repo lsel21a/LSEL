@@ -4,9 +4,9 @@
 // Explicit FSM description
 
 static fsm_trans_t timer_tt[] = {
-    {MUESTREO_NORMAL, ReceiveMuestreoRapido, MUESTREO_RAPIDO, SetMuestreoRapido},
+    {MUESTREO_NORMAL, ReceiveMuestreoRapido, MUESTREO_RAPIDO, NULL},
     {MUESTREO_NORMAL, WaitNormal , MUESTREO_NORMAL, SendTick},
-    {MUESTREO_RAPIDO, ReceiveMuestreoNormal, MUESTREO_NORMAL, SetMuestreoNormal},
+    {MUESTREO_RAPIDO, ReceiveMuestreoNormal, MUESTREO_NORMAL, NULL},
     {MUESTREO_RAPIDO, WaitRapido  , MUESTREO_RAPIDO, SendTick},
     {-1, NULL, -1, NULL},
 };
