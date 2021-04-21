@@ -2,7 +2,6 @@
 #define SENSORS_H
 
 #include "sensor_defs.h"
-#include "bme68x.h"
 
 /* CPP guard */
 #ifdef __cplusplus
