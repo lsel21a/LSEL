@@ -5,113 +5,80 @@
  * \date 2021-03-03
  */
 
+#include <bme680.h>
+#include <string.h>
+
 #include "sensor.h"
-#include "sensor_hal.h"
 #include "sensor_defs.h"
 
 
 sensors_status_t
 sensors_init(sensors_config_t* p_config) {
-    int8_t bme_result;
 
-    struct bme68x_conf bme_conf;
-    struct bme68x_heatr_conf bme_heater_conf;
+  //
+  memset(&(p_config->bme_dev), 0, sizeof(bme680_t));
 
-    /* HAL init */
-    if (sensors_hal_init() != SENSORS_OK) {
-        sensors_deinit(p_config);
-        return SENSORS_HAL_ERR;
-    }
+  // Init I2C
+  i2cdev_init();
 
-    p_config->_bme_dev_addr = SENSORS_BME68X_I2C_ADDR;
+  //
+  ESP_ERROR_CHECK(bme680_init_sensor(&(p_config->bme_dev)));
 
-    /* Setup specific uC functions */
-    p_config->bme_dev.read     = &bme68x_i2c_read;
-    p_config->bme_dev.write    = &bme68x_i2c_write;
-    p_config->bme_dev.delay_us = &bme68x_delay_us;
+  //
+  bme680_init_sensor(&(p_config->bme_dev));
 
-    /* Config device */
-    p_config->bme_dev.intf     = BME68X_I2C_INTF;
-    p_config->bme_dev.intf_ptr = &(p_config->_bme_dev_addr);
-    p_config->bme_dev.amb_temp = SENSORS_AMBIENT_TEMP;
 
-    bme_result = bme68x_init(&(p_config->bme_dev));
-    if (bme_result != BME68X_OK) {
-        sensors_deinit(p_config);
-        return SENSORS_ERR;
-    }
+  //
+  bme680_set_oversampling_rates(&(p_config->bme_dev), BME680_OSR_4X, BME680_OSR_NONE, BME680_OSR_2X);
 
-    /* Default sensor config. From BME68x-Sensor-API examples. */
-    bme_conf.filter  = BME68X_FILTER_OFF;       /* Activación del filtro interno IIR */
-    bme_conf.odr     = BME68X_ODR_NONE;         /* Tiempo de inactividad */
-    bme_conf.os_hum  = BME68X_OS_16X;           /* Oversampling de humedad */
-    bme_conf.os_pres = BME68X_OS_1X;            /* Oversampling de presión */
-    bme_conf.os_temp = BME68X_OS_2X;            /* Oversampling de temperatura */
-    bme_result = bme68x_set_conf(&bme_conf, &(p_config->bme_dev));
-    if (bme_result != BME68X_OK) {
-        sensors_deinit(p_config);
-        return SENSORS_ERR;
-    }
+  // Change the IIR filter size for temperature and pressure to 7.
+  bme680_set_filter_size(&(p_config->bme_dev), BME680_IIR_SIZE_7);
 
-    /* Default heater config. From BME68x-Sensor-API examples. */
-    bme_heater_conf.enable     = BME68X_ENABLE; /* Permite mediciones de gas */
-    bme_heater_conf.heatr_temp = 300;           /* Temperatura */
-    bme_heater_conf.heatr_dur  = 100;           /* Duración */
-    bme_result = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &bme_heater_conf, &(p_config->bme_dev));
-    if (bme_result != BME68X_OK) {
-        sensors_deinit(p_config);
-        return SENSORS_ERR;
-    }
+  // Change the heater profile 0 to 200 degree Celsius for 100 ms.
+  bme680_set_heater_profile(&(p_config->bme_dev), 0, 200, 100);
+  bme680_use_heater_profile(&(p_config->bme_dev), 0);
 
-    return SENSORS_OK;
+  // Set ambient temperature to 10 degree Celsius
+  bme680_set_ambient_temperature(&(p_config->bme_dev), SENSORS_AMBIENT_TEMP);
+
+  return SENSORS_OK;
 }
-
 
 sensors_status_t
 sensors_deinit(sensors_config_t* p_config) {
     return SENSORS_OK;
 }
 
+sensors_status_t
+get_data(sensors_config_t* p_config) {
+  uint32_t duration;
+  bme680_get_measurement_duration(&(p_config->bme_dev), &duration);
 
+  bme680_values_float_t values;
 
-sensors_status_t get_data(sensors_config_t* p_config)
-{
-  int8_t rslt;
-  uint8_t n_fields;
+  if (bme680_force_measurement(&(p_config->bme_dev)) == ESP_OK) {
+    vTaskDelay(duration);
 
-  struct bme68x_data data;  
+    if (bme680_get_results_float(&(p_config->bme_dev), &values) != ESP_OK) {
+      return SENSORS_ERR;
+    }
+    else {
+      printf("BME680 Sensor: %.2f °C, %.2f %%, %.2f hPa, %.2f Ohm\n",
+              values.temperature, values.humidity, values.pressure, values.gas_resistance);
 
-  rslt = bme68x_get_data(BME68X_FORCED_MODE, &data, &n_fields, &p_config->bme_dev);
-
-  if (rslt != BME68X_OK)
-  {
-    return SENSORS_ERR;
+      p_config->data.temperature = values.temperature;
+      p_config->data.pressure = values.pressure;
+      p_config->data.humidity = values.humidity;
+      p_config->data.gas_resistance = values.gas_resistance;
+  
+      return SENSORS_OK;
+    }
   }
-  else
-  {
-    p_config->data.temperature = data.temperature/100;
-    p_config->data.pressure = data.pressure;
-    p_config->data.humidity = data.humidity/1000;
-    p_config->data.gas_resistance = data.gas_resistance;
-    return SENSORS_OK;
-  }
+
+  return SENSORS_ERR;
 }
 
-sensors_status_t sleep_data(sensors_config_t* p_config)
-{
-  int8_t rslt;
-  uint8_t n_fields;
-
-  struct bme68x_data data;
-  
-  rslt = bme68x_get_data(BME68X_SLEEP_MODE, &data, &n_fields, &p_config->bme_dev);
-
-  if (rslt != BME68X_OK)
-  {
-    return SENSORS_ERR;
-  }
-  else
-  {
-    return SENSORS_OK;
-  }
+sensors_status_t
+sleep_data(sensors_config_t* p_config) {
+  return SENSORS_OK;
 }

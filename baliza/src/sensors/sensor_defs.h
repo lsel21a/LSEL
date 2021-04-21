@@ -9,21 +9,14 @@
 #ifndef SENSORS_DEFS_H
 #define SENSORS_DEFS_H
 
-#ifdef TEST
 #include <stdint.h>
 #include <stddef.h>
-#include <malloc.h>
-#else
-// Add uC standard types header
-// Add uC stddef header (or at least, define NULL)
-// Define uC malloc(...) and free(...) 
-#endif /* TEST */
+#include <bme680.h>
 
-#include "bme68x.h"
 
 #define NUM_SENSORS 3
 
-#define SENSORS_BME68X_I2C_ADDR BME68X_I2C_ADDR_LOW     /* BME68x I2C address */
+#define SENSORS_BME68X_I2C_ADDR BME680_I2C_ADDR_0       /* BME68x I2C address */
 // #define SENSORS_BME68X_I2C_ADDR BME68X_I2C_ADDR_HIGH
 #define SENSORS_AMBIENT_TEMP    25                      /* Temperatura ambiente de los sensores */
 
@@ -59,7 +52,7 @@ typedef struct {
 } sensors_data_t;
 
 typedef struct {
-    struct bme68x_dev bme_dev;                  /* BME68x device */
+    bme680_t bme_dev;                           /* BME680 device */
     sensors_data_t data;                        /* BME68x data */        
     sensors_select_t sensors_select;            /*! Sensor selection */
     uint8_t _bme_dev_addr;                      /*! [Internal] BME68x I2C address */
