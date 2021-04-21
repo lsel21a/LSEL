@@ -1,3 +1,6 @@
 [submodule "baliza/lib/bme68x"]
 	path = baliza/lib/bme68x
 	url = git@github.com:BoschSensortec/BME68x-Sensor-API.git
+[submodule "baliza/external/esp-idf-lib"]
+	path = baliza/external/esp-idf-lib
+	url = git@github.com:UncleRus/esp-idf-lib.git
