@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-name: Test and code coverage for "baliza"
-=======
 name: baliza - Test and code coverage
->>>>>>> origin/fsm_juntas
 
 on:
   push:

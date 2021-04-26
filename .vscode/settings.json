@@ -1,6 +1,0 @@
-{
-    "C_Cpp.default.includePath": [
-        "./baliza/src/",
-        "./baliza/libs/"
-    ]
-}
