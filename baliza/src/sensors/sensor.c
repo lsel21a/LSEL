@@ -18,15 +18,14 @@ sensors_init(sensors_config_t* p_config) {
   //
   memset(&(p_config->bme_dev), 0, sizeof(bme680_t));
 
-  // Init I2C
-  i2cdev_init();
+  // 
+  ESP_ERROR_CHECK(bme680_init_desc(&(p_config->bme_dev), SENSORS_BME68X_I2C_ADDR, PORT, SDA_GPIO, SCL_GPIO));
 
   //
   ESP_ERROR_CHECK(bme680_init_sensor(&(p_config->bme_dev)));
 
   //
-  bme680_init_sensor(&(p_config->bme_dev));
-
+  // bme680_init_sensor(&(p_config->bme_dev));
 
   //
   bme680_set_oversampling_rates(&(p_config->bme_dev), BME680_OSR_4X, BME680_OSR_NONE, BME680_OSR_2X);
@@ -63,7 +62,7 @@ get_data(sensors_config_t* p_config) {
       return SENSORS_ERR;
     }
     else {
-      printf("BME680 Sensor: %.2f °C, %.2f %%, %.2f hPa, %.2f Ohm\n",
+      printf("BME680 Sensor: %.2f °C, %.2f %%, %.2f hPa, %.2f Ohm.\n",
               values.temperature, values.humidity, values.pressure, values.gas_resistance);
 
       p_config->data.temperature = values.temperature;

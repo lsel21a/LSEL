@@ -9,13 +9,13 @@ static bool datos_validos = false;
 int checkStart_ON(fsm_t *this)
 {
     fsm_sensores_t *fp = (fsm_sensores_t*) this;
-    bool tick = 0;
+    bool tick = false;
 
     if( *(fp->tickQueue) != 0 )
     {
        // Receive a message on the created queue.  
-       xQueueReceive( *(fp->tickQueue), &(tick), portMAX_DELAY);
-       printf("Tick recibido en CheckStart_ON. \n");
+       xQueueReceive( *(fp->tickQueue), (void *) &tick, ( TickType_t ) 0);
+       printf("Tick %d recibido en CheckStart_ON. \n", tick);
     }
     else
     {
@@ -30,22 +30,14 @@ void Activa_Sensores(fsm_t *this){
     //sensors_status_t result;
     printf("Activación sensores.\n");
 
-    if(sensors_init(&devices[0]) != SENSORS_OK)
-    {
-        printf("Error en activación sensor 1.\n");
+    int i;
+    for (i=0; i<NUM_SENSORS; i++){
+        if(sensors_init(&devices[i]) != SENSORS_OK)
+        {
+            printf("Error en activación sensor %d.\n", i);
+        }
     }
-    
-    if(sensors_init(&devices[1]) != SENSORS_OK)
-    {
-        printf("Error en activación sensor 2.\n");
-    }
-    
-    if(sensors_init(&devices[2]) != SENSORS_OK)
-    {
-        printf("Error en activación sensor 3.\n");
-    }
-
-    printf("Activación de sensores OK. \n");
+    printf("Activación de sensores OK.\n");
     deadline = true;
 }
 
@@ -61,21 +53,15 @@ void Lectura_Sensores(fsm_t *this){
     deadline = false;
     printf("Lectura de los sensores.\n");
 
-    if(get_data(&devices[0]) != SENSORS_OK)
-    {
-        printf("Error en lectura sensor 1.\n");
+    int i;
+    for(i=0; i<NUM_SENSORS; i++){
+        if(get_data(&devices[i]) != SENSORS_OK)
+        {
+            printf("Error en lectura sensor %d.\n", i);
+        }
+        printf("Se ha leído %d ºC en el sensor %d.\n", (int)devices[i].data.temperature, i);
     }
 
-    if(get_data(&devices[1]) != SENSORS_OK)
-    {
-        printf("Error en lectura sensor 2.\n");
-    }
-
-    if(get_data(&devices[2]) != SENSORS_OK)
-    {
-        printf("Error en lectura sensor 3.\n");
-    }
-    //valores_sensores = true;
     printf("Lectura de los sensores OK.\n");
 }
 
@@ -103,7 +89,7 @@ int LecturaFinalizadaOK(fsm_t *this){
         printf("Cola de dato válido no esta correctamente creada.\n");
         return 0;
     }
-	
+	return 0;
 }
 
 void Send_Data(fsm_t *this){
@@ -116,7 +102,7 @@ void Send_Data(fsm_t *this){
     for (i=0;i<NUM_SENSORS;i++){
         txDataSensor[i] = devices[i].data;
     }
-    xQueueSend( *(fp->datosSensoresQueue), txDataSensor, ( TickType_t )0);
+    xQueueSend( *(fp->datosSensoresQueue), ( void * ) txDataSensor, ( TickType_t ) 0);
     
     printf("Datos de los sensores enviados.\n");
     datos_validos = true;
@@ -128,19 +114,12 @@ void Apagar_Sensores(fsm_t *this){
     datos_validos = false;
     printf("Apagado de los sensores.\n");
 
-    if(sleep_data(&devices[0]) != SENSORS_OK)
-    {
-        printf("Error en disactivación sensor 1.\n");
-    }
-
-    if(sleep_data(&devices[1]) != SENSORS_OK)
-    {
-        printf("Error en disactivación sensor 2.\n");
-    }
-
-    if(sleep_data(&devices[2]) != SENSORS_OK)
-    {
-        printf("Error en disactivación sensor 3.\n");
+    int i;
+    for(i=0; i<NUM_SENSORS; i++){
+        if(sleep_data(&devices[i]) != SENSORS_OK)
+        {
+            printf("Error en disactivación sensor %d.\n", i);
+        }
     }
 }
 

@@ -9,12 +9,12 @@ int ReceiveDatoValido (fsm_t* this)
   {
         // Receive a message on the created queue.  Block for 10 ticks if a
         // message is not immediately available.
-        xQueueReceive( *(fp->datoValidoQueue), &(rxDatoValido), portMAX_DELAY);
-        printf("Se ha recibido %d en la cola de datoValico \n", rxDatoValido);
+        xQueueReceive( *(fp->datoValidoQueue), (void *) &rxDatoValido, ( TickType_t ) 0);
+        printf("Se ha recibido %d en la cola de datoValido \n", rxDatoValido);
   }   
   else
    {
-       printf("Error en abrir cola de dato Valido \n");
+       printf("Error en abrir cola de datoValido \n");
    }
   return rxDatoValido;
 }
@@ -29,12 +29,12 @@ int ReceiveDatoValidoIncendio (fsm_t* this)
    {
        // Receive a message on the created queue.  Block for 10 ticks if a
        // message is not immediately available.
-       xQueueReceive( *(fp->datoValidoQueue), &(rxDatoValido),( TickType_t ) 10000 / portTICK_PERIOD_MS);
+       xQueueReceive( *(fp->datoValidoQueue), (void *) &rxDatoValido,( TickType_t ) 0);
        printf("Se ha enviado %d en la cola de datoValico \n", rxDatoValido);
    }   
    else
    {
-       printf("Error en abrir cola de dato Valido (incendio) \n");
+       printf("Error en abrir cola de datoValido (incendio) \n");
    }
    return rxDatoValido;
 }
@@ -94,14 +94,14 @@ void GetDataFromFsmSensor (fsm_t* this)
 
    if( *(fp->datosSensoresQueue) != 0 )
    {
-     if( xQueueReceive(*(fp->datosSensoresQueue), rxDataSensor, portMAX_DELAY))       
+      if( xQueueReceive(*(fp->datosSensoresQueue), (void *) rxDataSensor, ( TickType_t ) 0))       
       {
           for(int i=0; i<NUM_SENSORS; i++)
           {
             fp->temperatura[i] = rxDataSensor[i].temperature;
             fp->humedad[i] = rxDataSensor[i].humidity;
             fp->gases[i] = rxDataSensor[i].gas_resistance;
-            printf("Datos sensor %d recibido \n", (i+1));
+            printf("Datos sensor %d recibido \n", i);
           }
       }
       else
@@ -166,16 +166,16 @@ void GetMuestreoRapido (fsm_t* this)
       if( xQueueGenericSend( *(fp->muestreoRapidoQueue), (void *) &muestreoRapido, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
       {
           // Failed to post the message.
-          printf("Error en enviar senal de muestreoRapido \n");
+          printf("Error en enviar senal de muestreoRapido.\n");
       }
       else
       {
-          printf("Enviado senal de muestreoRapido = true \n");
+          printf("Enviado senal de muestreoRapido = true.\n");
       }  
   }
   else
   {
-      printf("Error: queue of muestreoRapido is not correctly open\n");
+      printf("Error: queue of muestreoRapido is not correctly open.\n");
   }
 }
 
@@ -190,16 +190,16 @@ void SendDatoIncendio (fsm_t* this)
       if( xQueueGenericSend( *(fp->incendioQueue), (void *) &Incendio, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
       {
           // Failed to post the message.
-          printf("Error en enviar senal de incendio \n");
+          printf("Error en enviar senal de incendio.\n");
       }
       else
       {
-          printf("Enviado senal de incendio = true \n");
+          printf("Enviado senal de incendio = true.\n");
       }
   }
   else
   {
-      printf("Error: queue of incendio is not correctly open\n");
+      printf("Error: queue of incendio is not correctly open.\n");
   }
 
   if( *(fp->muestreoRapidoQueue) != 0 )
@@ -209,16 +209,16 @@ void SendDatoIncendio (fsm_t* this)
       if( xQueueGenericSend( *(fp->muestreoRapidoQueue), (void *) &muestreoRapido, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
       {
           // Failed to post the message.
-          printf("Error en enviar senal de muestreoRapido \n");
+          printf("Error en enviar senal de muestreoRapido.\n");
       }
       else
       {
-          printf("Enviado senal de muestreoRapido = false \n");
+          printf("Enviado senal de muestreoRapido = false.\n");
       }
   }
   else
   {
-      printf("Error: queue of muestreoRapido is not correctly open\n");
+      printf("Error: queue of muestreoRapido is not correctly open.\n");
   }
   return;
 }

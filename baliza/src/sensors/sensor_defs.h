@@ -14,13 +14,13 @@
 #include <bme680.h>
 
 
-#define NUM_SENSORS 3
+#define NUM_SENSORS 1
 
 #define SENSORS_BME68X_I2C_ADDR BME680_I2C_ADDR_0       /* BME68x I2C address */
 // #define SENSORS_BME68X_I2C_ADDR BME68X_I2C_ADDR_HIGH
 #define SENSORS_AMBIENT_TEMP    25                      /* Temperatura ambiente de los sensores */
-#define SDA_GPIO 13
-#define SCL_GPIO 14
+#define SDA_GPIO 21
+#define SCL_GPIO 22
 #define PORT 0
 
 
