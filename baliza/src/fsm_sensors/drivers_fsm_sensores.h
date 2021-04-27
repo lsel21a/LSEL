@@ -2,9 +2,6 @@
 #define DRIVERS_FSM_SENSORES_H
 
 #include "fsm_sensores.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
 #include "sensors/sensor.h"
 #include <stdbool.h>
 

@@ -2,7 +2,7 @@
 #include <string.h>
 #include "fsm.h"
 #include "fsm_sensores.h"
-#include "mock_drivers.h"
+#include "mock_drivers_fsm_sensores.h"
 
 #define True 1
 #define False 0
@@ -31,7 +31,7 @@ void test_fsm_fsmInitCheckInitialState(){
     fsm_t f;
     fsm_init_sensores((fsm_t *)&f);
 
-    TEST_ASSERT(f.current_state == Idle);
+    TEST_ASSERT(f.current_state == IDLE);
 }
 
 void test_fsm_fsmCheckTransitionIdleToMedidas(){
@@ -42,7 +42,7 @@ void test_fsm_fsmCheckTransitionIdleToMedidas(){
 	Activa_Sensores_ExpectAnyArgs();
     fsm_fire(&f);
 
-    TEST_ASSERT(f.current_state == Medidas);
+    TEST_ASSERT(f.current_state == MEDIDAS);
 }
 
 void test_fsm_fsmCheckNotTransitionIdleToMedidas(){
@@ -52,63 +52,63 @@ void test_fsm_fsmCheckNotTransitionIdleToMedidas(){
     checkStart_ON_ExpectAnyArgsAndReturn(False);
     fsm_fire(&f);
 
-    TEST_ASSERT(f.current_state == Idle);
+    TEST_ASSERT(f.current_state == IDLE);
 }
 
 void test_fsm_fsmCheckTransitionMedidasToLectura(){
     fsm_t f;
     fsm_init_sensores((fsm_t *)&f);
 	
-	f.current_state = Medidas;
+	f.current_state = MEDIDAS;
 	Deadline_ExpectAnyArgsAndReturn(True);
 	Lectura_Sensores_ExpectAnyArgs();
 	fsm_fire(&f);
 
-    TEST_ASSERT(f.current_state == Lectura);
+    TEST_ASSERT(f.current_state == LECTURA);
 }
 
 void test_fsm_fsmCheckNotTransitionMedidasToLectura(){
     fsm_t f;
     fsm_init_sensores((fsm_t *)&f);
 	
-	f.current_state = Medidas;
+	f.current_state = MEDIDAS;
 	Deadline_ExpectAnyArgsAndReturn(False);
 	fsm_fire(&f);
 
-    TEST_ASSERT(f.current_state == Medidas);	
+    TEST_ASSERT(f.current_state == MEDIDAS);	
 }
 
-void test_fsm_fsmCheckTransitionLecturaToCalculos(){
+void test_fsm_fsmCheckTransitionLecturaToValidacion(){
     fsm_t f;
     fsm_init_sensores((fsm_t *)&f);
 	
-	f.current_state = Lectura;
+	f.current_state = LECTURA;
 	LecturaFinalizadaOK_ExpectAnyArgsAndReturn(True);
-	Dato_Valido_ExpectAnyArgs();
+	Send_Data_ExpectAnyArgs();
 	fsm_fire(&f);
 
-    TEST_ASSERT(f.current_state == Calculos);
+    TEST_ASSERT(f.current_state == VALIDACION);
 }
 
 void test_fsm_fsmCheckNotTransitionLecturaToCalculos(){
     fsm_t f;
     fsm_init_sensores((fsm_t *)&f);
 	
-	f.current_state = Lectura;
+	f.current_state = LECTURA;
 	LecturaFinalizadaOK_ExpectAnyArgsAndReturn(False);
 	fsm_fire(&f);
 
-    TEST_ASSERT(f.current_state == Lectura);
+    TEST_ASSERT(f.current_state == LECTURA);
 }
 
 void test_fsm_fsmCheckTransitionCalculosToIdle(){
     fsm_t f;
     fsm_init_sensores((fsm_t *)&f);
 	
-	f.current_state = Calculos;
+	f.current_state = VALIDACION;
 	ReturnTrue_ExpectAnyArgsAndReturn(True);
-	Dato_NoValido_ExpectAnyArgs();
+	Apagar_Sensores_ExpectAnyArgs();
 	fsm_fire(&f);
 
-    TEST_ASSERT(f.current_state == Idle);
+    TEST_ASSERT(f.current_state == IDLE);
 }
