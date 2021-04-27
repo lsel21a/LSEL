@@ -8,7 +8,7 @@
 //bool DatoValido = false;
 //bool Incendio = false;
 
-sensors_config_t devices[NUM_SENSORS];
+//sensors_config_t devices[NUM_SENSORS];
 // QueueHandle_t datoValidoQueue, datosSensoresQueue, muestreoRapidoQueue, incendioQueue;
 
 int checkStart_ON(fsm_t *this);

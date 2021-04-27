@@ -8,6 +8,7 @@ static bool deadline = false;
 static bool datos_validos = false;
 // static bool Start = false;
 
+sensors_config_t devices[NUM_SENSORS];
 
 int checkStart_ON(fsm_t *this)
 {
