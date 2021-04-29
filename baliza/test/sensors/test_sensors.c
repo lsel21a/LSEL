@@ -7,7 +7,7 @@
 #include "unity.h"
 
 #include "sensors/sensors.h"
-// #include "sensors/sensors_hal.h"
+//#include "sensors/sensors_hal.h"
 #include "mock_sensors_hal.h"
 #include "sensors/sensors_defs.h"
 
