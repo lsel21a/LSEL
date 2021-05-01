@@ -15,7 +15,9 @@ static void fsm_sensor_task(void *arg)
   fsm_init_sensores(&f, &datoValidoQueue, &datosSensoresQueue, &tickQueue);
   
   while (1) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de sensores.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f));
     vTaskDelay(XTASK_DELAY);
   }
@@ -30,7 +32,9 @@ static void fsm_deteccion_task(void *arg)
   fsm_deteccion_incendio_init (&f, &datoValidoQueue, &datosSensoresQueue, &incendioQueue, &muestreoRapidoQueue);
   
   while (1) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de detección de incendio.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f));
     vTaskDelay(XTASK_DELAY);
   }
@@ -44,7 +48,9 @@ static void fsm_timer_task(void *arg)
   fsm_timer_init (&f, &muestreoRapidoQueue, &tickQueue);
   
   while (1) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de timer.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f));
     vTaskDelay(XTASK_DELAY);
   }
@@ -58,13 +64,15 @@ static void fsm_emergencia_task(void *arg)
   fsm_emergencia_init (&f, &incendioQueue);
   
   while (1) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de emergencia.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f));
     vTaskDelay(XTASK_DELAY);
   }
   return;
 }
-#endif
+#endif /* TAREA_SEPARADAS */
 
 void app_main() 
 {   
@@ -83,20 +91,32 @@ void app_main()
   BaseType_t rslt;
   
   rslt = xTaskCreate(fsm_timer_task, "fsm_timer_task", 4096, NULL, 4, NULL);
-  if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
+  if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY ) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Lo vas a arreglar tú, Marcos!!!\n");
+#endif /* DEBUG_PRINT_ENABLE */
+  }
 
   rslt = xTaskCreate(fsm_sensor_task, "fsm_sensor_task", 4096, NULL, 3, NULL);
-  if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
+  if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY ) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Lo vas a arreglar tú, Francesco!!!\n");
+#endif /* DEBUG_PRINT_ENABLE */
+  }
 
   rslt = xTaskCreate(fsm_deteccion_task, "fsm_deteccion_incendio_task", 4096, NULL, 2, NULL);
-  if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
+  if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY ) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Lo vas a arreglar tú, Marcos!!!\n");
+#endif /* DEBUG_PRINT_ENABLE */
+  }
 
   rslt = xTaskCreate(fsm_emergencia_task, "fsm_emergencia_task", 4096, NULL, 1, NULL);
-  if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
+  if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY ) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Lo vas a arreglar tú, Marcos!!!\n");
+#endif /* DEBUG_PRINT_ENABLE */
+  }
 #else
   fsm_deteccion_incendio_t f_inc;
   fsm_deteccion_incendio_init (&f_inc, &datoValidoQueue, &datosSensoresQueue, &incendioQueue, &muestreoRapidoQueue);
@@ -112,17 +132,25 @@ void app_main()
   
 
   while(1){
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de timer.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f_timer));
 
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de sensores.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f_sen));
 
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de detección de incendio.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f_inc));
 
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de emergencia.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f_emer));
  }
-#endif
+#endif /* TAREA_SEPARADAS */
 }

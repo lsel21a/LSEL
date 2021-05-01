@@ -16,8 +16,9 @@ void fsm_init_sensores(fsm_sensores_t *this, QueueHandle_t *datoValidoQueue, Que
     this->datosSensoresQueue = datoValidoQueue;
     this->datoValidoQueue = datosSensoresQueue;
     this->tickQueue = tickQueue;
+#ifdef DEBUG_PRINT_ENABLE
     printf("FSM sensores inicializada.\n");
-
+#endif /* DEBUG_PRINT_ENABLE */
 }
 
 

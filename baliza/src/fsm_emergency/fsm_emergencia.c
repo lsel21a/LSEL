@@ -20,5 +20,7 @@ void  fsm_emergencia_init ( fsm_emergencia_t * this, QueueHandle_t *incendioQueu
 {
     fsm_init((fsm_t *)this, emergencia_tt);
     this->incendioQueue = incendioQueue;
+#ifdef DEBUG_PRINT_ENABLE
     printf("FSM emergencia inicializada.\n");
+#endif /* DEBUG_PRINT_ENABLE */
 };

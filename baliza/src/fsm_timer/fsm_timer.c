@@ -18,5 +18,7 @@ void  fsm_timer_init ( fsm_timer_t * this, QueueHandle_t *muestreoRapidoQueue, Q
     fsm_init((fsm_t *)this, timer_tt);
     this->muestreoRapidoQueue = muestreoRapidoQueue;
     this->tickQueue = tickQueue;
+#ifdef DEBUG_PRINT_ENABLE
     printf("FSM timer inicializada.\n");
+#endif /* DEBUG_PRINT_ENABLE */
 }
