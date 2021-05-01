@@ -8,6 +8,7 @@
 #include <bme680.h>
 #include <string.h>
 #include <stdio.h>
+#include <esp_err.h>
 #include "freertos/task.h"
 
 #include "sensor.h"

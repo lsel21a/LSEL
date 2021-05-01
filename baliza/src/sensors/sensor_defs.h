@@ -36,6 +36,7 @@ typedef enum {
 typedef enum {
     SENSORS_OK,                                 /* Everything Ok 👌 */
     SENSORS_ERR,                                /* Something went wrong */
+    SENSORS_BME680_ERR,                         /* BME680 lib init error */
     SENSORS_IN_USE_ERR,                         /* Already initialized */
     SENSORS_MEM_ERR,                            /* Dynamic memory error */
     SENSORS_HAL_ERR                             /* Sensors HAL error */
