@@ -50,9 +50,12 @@ sensors_deinit(sensors_config_t* p_config) {
 sensors_status_t
 get_data(sensors_config_t* p_config) {
   uint32_t duration;
-  bme680_get_measurement_duration(&(p_config->bme_dev), &duration);
 
   bme680_values_float_t values;
+
+  if (bme680_get_measurement_duration(&(p_config->bme_dev), &duration) != ESP_OK) {
+    return SENSORS_ERR;
+  }
 
   if (bme680_force_measurement(&(p_config->bme_dev)) == ESP_OK) {
     vTaskDelay(duration);
