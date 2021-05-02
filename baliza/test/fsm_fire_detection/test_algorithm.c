@@ -84,8 +84,11 @@ test_algo_Alarm() {
     TEST_ASSERT_EQUAL(algoritmo_incendio(temp, hum, gas, n_items), 1);
 }
 
+// TODO. How should the algorithm works?
 void
 test_algo_AlarmNotAll() {
+    TEST_IGNORE_MESSAGE("TODO. Como debe funcionar el algoritmo?");
+
     int n_items = 3;
     float temp[n_items], hum[n_items], gas[n_items];
 
