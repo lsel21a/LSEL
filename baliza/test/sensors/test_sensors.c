@@ -14,6 +14,21 @@
 #include "sensors/sensor.h"
 #include "sensors/sensor_defs.h"
 
+#define BME680_LIB_MOCK() do {                                      \
+    bme680_init_desc_ExpectAnyArgsAndReturn(ESP_OK);                \
+    bme680_init_sensor_ExpectAnyArgsAndReturn(ESP_OK);              \
+    bme680_set_oversampling_rates_ExpectAnyArgsAndReturn(ESP_OK);   \
+    bme680_set_filter_size_ExpectAnyArgsAndReturn(ESP_OK);          \
+    bme680_set_heater_profile_ExpectAnyArgsAndReturn(ESP_OK);       \
+    bme680_use_heater_profile_ExpectAnyArgsAndReturn(ESP_OK);       \
+    bme680_set_ambient_temperature_ExpectAnyArgsAndReturn(ESP_OK);  \
+} while(0)
+
+#define TEST_RMOX 112233.11;
+#define TEST_HUM  11.29;
+#define TEST_PRES 0.10203;
+#define TEST_TEMP 21.09;
+
 
 void
 setUp(void) {
@@ -31,104 +46,87 @@ test_sensors_InitOk() {
     memset(&sensors, 0, sizeof(sensors_config_t));
     sensors.sensors_select = SENSORS_SELECT1;
 
-    bme680_init_desc_ExpectAnyArgsAndReturn(ESP_OK);
-    bme680_init_sensor_ExpectAnyArgsAndReturn(ESP_OK);
-    bme680_set_oversampling_rates_ExpectAnyArgsAndReturn(ESP_OK);
-    bme680_set_filter_size_ExpectAnyArgsAndReturn(ESP_OK);
-    bme680_set_heater_profile_ExpectAnyArgsAndReturn(ESP_OK);
-    bme680_use_heater_profile_ExpectAnyArgsAndReturn(ESP_OK);
-    bme680_set_ambient_temperature_ExpectAnyArgsAndReturn(ESP_OK);
-
+    BME680_LIB_MOCK();
     TEST_ASSERT_EQUAL(SENSORS_OK, sensors_init(&sensors));
 }
 
 // TODO. How can we choose the sensor??
-// void
-// test_sensors_InitOkValidAddr() {
-//     /* If sensors_init(...) is valid, bme_dev must have a valid BME680 address */
-//     sensors_config_t sensors1, sensors2;
+void
+test_selectAnotherSensor() {
+    TEST_IGNORE_MESSAGE("How can we choose the sensor?");
+}
 
-//     memset(&sensors1, 0, sizeof(sensors_config_t));
-//     memset(&sensors2, 0, sizeof(sensors_config_t));
-//     sensors1.sensors_select = SENSORS_SELECT1;
-//     sensors2.sensors_select = SENSORS_SELECT2;
+void
+test_getDataOk() {
+    /* Valid request of get_data(...) */
+    sensors_config_t sensors;
+    sensors_config_t* p_sensors = &sensors;
 
-//     TEST_ASSERT_EQUAL(SENSORS_OK, sensors_init(&sensors1));
-//     TEST_ASSERT_EQUAL(sensors1._bme_dev_addr, BME68X_I2C_ADDR_LOW);
-//     TEST_ASSERT_EQUAL(sensors1.bme_dev.intf_ptr, &(sensors1._bme_dev_addr));
+    bme680_values_float_t values;
+    values.gas_resistance = TEST_RMOX;
+    values.humidity = TEST_HUM;
+    values.pressure = TEST_PRES;
+    values.temperature = TEST_TEMP;
 
-//     sensors_hal_init_ExpectAndReturn(BME68X_OK);
-//     bme68x_init_ExpectAnyArgsAndReturn(BME68X_OK);
-//     bme68x_set_conf_ExpectAnyArgsAndReturn(BME68X_OK);
-//     bme68x_set_heatr_conf_ExpectAnyArgsAndReturn(BME68X_OK);
+    BME680_LIB_MOCK();
+    sensors_init(p_sensors);
 
-//     TEST_ASSERT_EQUAL(SENSORS_OK, sensors_init(&sensors2));
-//     TEST_ASSERT_EQUAL(sensors2._bme_dev_addr, BME68X_I2C_ADDR_HIGH);
-//     TEST_ASSERT_EQUAL(sensors2.bme_dev.intf_ptr, &(sensors2._bme_dev_addr));
-// }
+    bme680_get_measurement_duration_ExpectAnyArgsAndReturn(ESP_OK);
+    bme680_force_measurement_ExpectAnyArgsAndReturn(ESP_OK);
+    bme680_get_results_float_ExpectAnyArgsAndReturn(ESP_OK);
+    bme680_get_results_float_ReturnThruPtr_results(&values);
 
-// void
-// test_sensors_InitErrNotValidSelection() {
-//     /* If an invalid sensors_select value is given, sensors_init(...) should fail */
-//     sensors_config_t sensors;
+    TEST_ASSERT_EQUAL(SENSORS_OK, get_data(p_sensors));
+    TEST_ASSERT_EQUAL(values.gas_resistance, sensors.data.gas_resistance);
+    TEST_ASSERT_EQUAL(values.humidity, sensors.data.humidity);
+    TEST_ASSERT_EQUAL(values.pressure, sensors.data.pressure);
+    TEST_ASSERT_EQUAL(values.temperature, sensors.data.temperature);
+}
 
-//     memset(&sensors, 0, sizeof(sensors_config_t));
-//     sensors.sensors_select = -1;
+void
+test_getDataFail1() {
+    /* When bme680_get_measurement_duration fails, get_data(...) should fail too */
+    sensors_config_t sensors;
+    sensors_config_t* p_sensors = &sensors;
 
-//     sensors_hal_init_ExpectAndReturn(BME68X_OK);
+    BME680_LIB_MOCK();
+    sensors_init(p_sensors);
 
-//     TEST_ASSERT_EQUAL(SENSORS_SELECT_NOT_VALID, sensors_init(&sensors));
-// }
+    bme680_get_measurement_duration_ExpectAnyArgsAndReturn(ESP_FAIL);
 
-// void
-// test_sensors_InitOkChkHAL() {
-//     /* Check if bme68x_dev has valid pointers to the HAL functions */
-//     sensors_config_t sensors;
+    TEST_ASSERT_EQUAL(SENSORS_ERR, get_data(p_sensors));
+}
 
-//     memset(&sensors, 0, sizeof(sensors_config_t));
-//     sensors.sensors_select = SENSORS_SELECT1;
+void
+test_getDataFail2() {
+    /* When bme680_force_measurement fails, get_data(...) should fail too */
+    sensors_config_t sensors;
+    sensors_config_t* p_sensors = &sensors;
 
-//     sensors_hal_init_ExpectAndReturn(BME68X_OK);
-//     bme68x_init_ExpectAnyArgsAndReturn(BME68X_OK);
-//     bme68x_set_conf_ExpectAnyArgsAndReturn(BME68X_OK);
-//     bme68x_set_heatr_conf_ExpectAnyArgsAndReturn(BME68X_OK);
+    BME680_LIB_MOCK();
+    sensors_init(p_sensors);
 
-//     TEST_ASSERT_EQUAL(SENSORS_OK, sensors_init(&sensors));
-//     TEST_ASSERT_NOT_EQUAL_MESSAGE(sensors.bme_dev.read, NULL, "HAL read not set!");
-//     TEST_ASSERT_NOT_EQUAL_MESSAGE(sensors.bme_dev.write, NULL, "HAL write not set!");
-//     TEST_ASSERT_NOT_EQUAL_MESSAGE(sensors.bme_dev.delay_us, NULL, "HAL delay not set!");
-// }
+    bme680_get_measurement_duration_ExpectAnyArgsAndReturn(ESP_OK);
+    bme680_force_measurement_ExpectAnyArgsAndReturn(ESP_FAIL);
 
-// void
-// test_sensors_InitBMEError() {
-//     /* sensors_init(...) should give an error if any of the BME68x function calls are not valid */
-//     sensors_config_t sensors1, sensors2, sensors3;
+    TEST_ASSERT_EQUAL(SENSORS_ERR, get_data(p_sensors));
+}
 
-//     memset(&sensors1, 0, sizeof(sensors_config_t));
-//     memset(&sensors2, 0, sizeof(sensors_config_t));
-//     memset(&sensors3, 0, sizeof(sensors_config_t));
-//     sensors1.sensors_select = SENSORS_SELECT1;
-//     sensors2.sensors_select = SENSORS_SELECT1;
-//     sensors3.sensors_select = SENSORS_SELECT1;
+void
+test_getDataFail3() {
+    /* When bme680_get_results_float fails, get_data(...) should fail too */
+    sensors_config_t sensors;
+    sensors_config_t* p_sensors = &sensors;
 
-//     sensors_hal_init_ExpectAndReturn(BME68X_OK);
-//     bme68x_init_ExpectAnyArgsAndReturn(BME68X_E_COM_FAIL);
+    BME680_LIB_MOCK();
+    sensors_init(p_sensors);
 
-//     TEST_ASSERT_EQUAL(SENSORS_ERR, sensors_init(&sensors1));
+    bme680_get_measurement_duration_ExpectAnyArgsAndReturn(ESP_OK);
+    bme680_force_measurement_ExpectAnyArgsAndReturn(ESP_OK);
+    bme680_get_results_float_ExpectAnyArgsAndReturn(ESP_FAIL);
 
-//     sensors_hal_init_ExpectAndReturn(BME68X_OK);
-//     bme68x_init_ExpectAnyArgsAndReturn(BME68X_OK);
-//     bme68x_set_conf_ExpectAnyArgsAndReturn(BME68X_E_COM_FAIL);
-
-//     TEST_ASSERT_EQUAL(SENSORS_ERR, sensors_init(&sensors2));
-
-//     sensors_hal_init_ExpectAndReturn(BME68X_OK);
-//     bme68x_init_ExpectAnyArgsAndReturn(BME68X_OK);
-//     bme68x_set_conf_ExpectAnyArgsAndReturn(BME68X_OK);
-//     bme68x_set_heatr_conf_ExpectAnyArgsAndReturn(BME68X_E_COM_FAIL);
-
-//     TEST_ASSERT_EQUAL(SENSORS_ERR, sensors_init(&sensors3));
-// }
+    TEST_ASSERT_EQUAL(SENSORS_ERR, get_data(p_sensors));
+}
 
 void
 test_sensors_DeinitOk() {
@@ -136,4 +134,9 @@ test_sensors_DeinitOk() {
     sensors_config_t sensors;
 
     TEST_ASSERT_EQUAL(SENSORS_OK, sensors_deinit(&sensors));
+}
+
+void
+test_EnterSleep() {
+    TEST_IGNORE_MESSAGE("Not implemented!");
 }
