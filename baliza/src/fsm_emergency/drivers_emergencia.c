@@ -7,6 +7,11 @@ int SolicitudDatos (fsm_t *this)
 #ifdef DEBUG_PRINT_ENABLE
     printf("Se comprueba si se han solicitado datos del servidor.\n");
 #endif /* DEBUG_PRINT_ENABLE */
+    fsm_emergencia_t *fp = (fsm_emergencia_t*) this;
+    int msg_id;
+
+    msg_id = esp_mqtt_client_publish((*fp->client), "incendio", "prueba desde fsm emergencia", 0, 0, 0);
+    
     return 0;
 };
 

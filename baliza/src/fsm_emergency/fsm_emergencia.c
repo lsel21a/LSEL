@@ -16,11 +16,10 @@ static fsm_trans_t emergencia_tt[] = {
 };
 
 
-void  fsm_emergencia_init ( fsm_emergencia_t * this, QueueHandle_t *incendioQueue)
+void  fsm_emergencia_init ( fsm_emergencia_t * this, QueueHandle_t *incendioQueue, esp_mqtt_client_handle_t *client)
 {
     fsm_init((fsm_t *)this, emergencia_tt);
     this->incendioQueue = incendioQueue;
-#ifdef DEBUG_PRINT_ENABLE
+    this->client = client;
     printf("FSM emergencia inicializada.\n");
-#endif /* DEBUG_PRINT_ENABLE */
 };
