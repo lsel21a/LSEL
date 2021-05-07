@@ -15,7 +15,7 @@
 typedef struct _fsm_deteccion_incendio_t {
   fsm_t fsm;
   QueueHandle_t *datoValidoQueue, *datosSensoresQueue, *incendioQueue, *muestreoRapidoQueue;
-  float temperatura[NUM_SENSORS], humedad[NUM_SENSORS], gases[NUM_SENSORS];
+  float *temperatura, *humedad, *gases;
 } fsm_deteccion_incendio_t;
 
 
@@ -27,5 +27,5 @@ enum DeteccionIncendio_State{
   INCENDIO,
 };
 
-void  fsm_deteccion_incendio_init ( fsm_deteccion_incendio_t * f, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *incendioQueue, QueueHandle_t *muestreoRapidoQueue);
+void  fsm_deteccion_incendio_init ( fsm_deteccion_incendio_t * f, float *temperatura, float *humedad, float *gases, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *incendioQueue, QueueHandle_t *muestreoRapidoQueue);
 # endif

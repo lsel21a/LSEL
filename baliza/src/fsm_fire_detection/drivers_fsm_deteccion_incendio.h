@@ -6,7 +6,6 @@
 #include "freertos/queue.h"
 #include "fsm_deteccion_incendio.h"
 
-#define NUM_SENSORES 3
 
 int ReceiveDatoValido (fsm_t* this);
 int ReceiveDatoValidoIncendio (fsm_t* this);

@@ -15,9 +15,12 @@ static fsm_trans_t DeteccionIncendio[] = {
 };
 
 
-void  fsm_deteccion_incendio_init ( fsm_deteccion_incendio_t *this, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *incendioQueue, QueueHandle_t *muestreoRapidoQueue)
+void  fsm_deteccion_incendio_init ( fsm_deteccion_incendio_t *this, float *temperatura, float *humedad, float *gases, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *incendioQueue, QueueHandle_t *muestreoRapidoQueue)
 {
   fsm_init((fsm_t*)this , DeteccionIncendio);
+  this->temperatura = temperatura;
+  this->humedad = humedad;
+  this->gases = gases;
   this->datoValidoQueue = datoValidoQueue;
   this->datosSensoresQueue = datosSensoresQueue;
   this->incendioQueue = incendioQueue;

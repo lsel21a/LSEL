@@ -16,7 +16,8 @@
 #define TAREA_SEPARADAS
 
 esp_mqtt_client_handle_t client;
-QueueHandle_t datoValidoQueue, datosSensoresQueue, tickQueue, incendioQueue, muestreoRapidoQueue;
+float temperatura[NUM_SENSORS], humedad[NUM_SENSORS], gases[NUM_SENSORS];
+QueueHandle_t datoValidoQueue, datosSensoresQueue, tickQueue, incendioQueue, muestreoRapidoQueue, solicitudDatosQueue;
 
 static const char *TAG = "MQTT_EXAMPLE";
 
@@ -42,31 +43,16 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 {
     ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
     esp_mqtt_event_handle_t event = event_data;
-    esp_mqtt_client_handle_t client = event->client;
-    int msg_id;
+
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-        //msg_id = esp_mqtt_client_publish(client, "incendio", "prueba desde event_handler", 0, 0, 0);
-        //ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
-
-        //msg_id = esp_mqtt_client_subscribe(client, "/topic/qos0", 0);
-        //ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-
-        //msg_id = esp_mqtt_client_subscribe(client, "/topic/qos1", 1);
-        //ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-
-        //msg_id = esp_mqtt_client_unsubscribe(client, "/topic/qos1");
-        //ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
         break;
-
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-        msg_id = esp_mqtt_client_publish(client, "/incendio", "data", 0, 0, 0);
-        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_UNSUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
@@ -75,17 +61,50 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
         break;
     case MQTT_EVENT_DATA:
-        ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+      ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+      if (solicitudDatosQueue != 0)
+      {
         printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
         printf("DATA=%.*s\r\n", event->data_len, event->data);
-        break;
+        
+        if (strcmp( event->topic, "solicitudDatos") == 0)
+        {
+          bool txSolicitudDatos = false;
+
+          if (strcmp( event->data, "true") == 0)
+          {
+            txSolicitudDatos = true;
+          }
+          // Send solicitudDatos MQTT data to fsm_emergencia.
+          if (xQueueGenericSend(solicitudDatosQueue, (void *)&txSolicitudDatos, (TickType_t)0, queueSEND_TO_BACK) != pdPASS)
+          {
+            // Failed to post the message.
+#ifdef DEBUG_PRINT_ENABLE
+            printf("Error en enviar senal de solicitudDatos.\n");
+#endif /* DEBUG_PRINT_ENABLE */
+          }
+          else
+          {
+#ifdef DEBUG_PRINT_ENABLE
+            printf("Enviado senal de solicitudDatos = true.\n");
+#endif /* DEBUG_PRINT_ENABLE */
+          }
+        }
+      }
+      else
+      {
+#ifdef DEBUG_PRINT_ENABLE
+        printf("Error: queue of solicitudDatos is not correctly open.\n");
+#endif /* DEBUG_PRINT_ENABLE */
+      }
+      break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
         if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT) {
             log_error_if_nonzero("reported from esp-tls", event->error_handle->esp_tls_last_esp_err);
             log_error_if_nonzero("reported from tls stack", event->error_handle->esp_tls_stack_err);
-            log_error_if_nonzero("captured as transport's socket errno",  event->error_handle->esp_transport_sock_errno);
-            ESP_LOGI(TAG, "Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
+            //log_error_if_nonzero("captured as transport's socket errno",  event->error_handle->esp_transport_sock_errno);
+            //ESP_LOGI(TAG, "Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
 
         }
         break;
@@ -128,7 +147,7 @@ static void fsm_deteccion_task(void *arg)
 {
 
   fsm_deteccion_incendio_t f;
-  fsm_deteccion_incendio_init (&f, &datoValidoQueue, &datosSensoresQueue, &incendioQueue, &muestreoRapidoQueue);
+  fsm_deteccion_incendio_init (&f, &(temperatura[NUM_SENSORS]), &(humedad[NUM_SENSORS]), &(gases[NUM_SENSORS]), &datoValidoQueue, &datosSensoresQueue, &incendioQueue, &muestreoRapidoQueue);
   
   while (1) {
     printf("Disparo de la FSM de detección de incendio.\n");
@@ -156,7 +175,7 @@ static void fsm_emergencia_task(void *arg)
 {
 
   fsm_emergencia_t f;
-  fsm_emergencia_init (&f, &incendioQueue, &client);
+  fsm_emergencia_init (&f, &(temperatura[NUM_SENSORS]), &(humedad[NUM_SENSORS]), &(gases[NUM_SENSORS]), &incendioQueue, &solicitudDatosQueue, &client);
   
   while (1) {
     printf("Disparo de la FSM de emergencia.\n");
@@ -201,6 +220,7 @@ void app_main()
   datosSensoresQueue = xQueueCreate(1, NUM_SENSORS*sizeof(sensors_data_t));
   tickQueue = xQueueCreate(1, sizeof(bool));
   incendioQueue = xQueueCreate(1, sizeof(bool));
+  solicitudDatosQueue = xQueueCreate(1, sizeof(bool));
   muestreoRapidoQueue = xQueueCreate(1, sizeof(bool));
 
 #ifdef TAREA_SEPARADAS
@@ -209,19 +229,19 @@ void app_main()
   
   rslt = xTaskCreate(fsm_timer_task, "fsm_timer_task", 4096, NULL, 4, NULL);
   if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
-    printf("Lo vas a arreglar tú, Marcos!!!\n");
+    printf("Error in allocating memory!\n");
 
   rslt = xTaskCreate(fsm_sensor_task, "fsm_sensor_task", 4096, NULL, 3, NULL);
   if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
-    printf("Lo vas a arreglar tú, Francesco!!!\n");
+    printf("Error in allocating memory!\n");
 
   rslt = xTaskCreate(fsm_deteccion_task, "fsm_deteccion_incendio_task", 4096, NULL, 2, NULL);
   if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
-    printf("Lo vas a arreglar tú, Marcos!!!\n");
+    printf("Error in allocating memory!\n");
 
   rslt = xTaskCreate(fsm_emergencia_task, "fsm_emergencia_task", 4096, NULL, 1, NULL);
   if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
-    printf("Lo vas a arreglar tú, Marcos!!!\n");
+    printf("Error in allocating memory!\n");
 #else
   fsm_deteccion_incendio_t f_inc;
   fsm_deteccion_incendio_init (&f_inc, &datoValidoQueue, &datosSensoresQueue, &incendioQueue, &muestreoRapidoQueue);

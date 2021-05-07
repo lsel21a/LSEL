@@ -87,7 +87,7 @@ int Incendio_to_Idle (fsm_t* this)
   int resultado = 0;
 
   fsm_deteccion_incendio_t *fp = (fsm_deteccion_incendio_t *) this;
-  resultado = !(algoritmo_incendio(fp->temperatura, fp->humedad, fp->gases, NUM_SENSORS)); 
+  resultado = !(algoritmo_incendio( fp->temperatura, fp->humedad, fp->gases, NUM_SENSORS)); 
   
 #ifdef DEBUG_PRINT_ENABLE
   printf("Algoritmo ha devuelto %d \n", resultado);
