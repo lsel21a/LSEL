@@ -3,7 +3,7 @@
 
 int SolicitudDatos (fsm_t *this)
 {
-    //hay que implementar la recepcion de la solicitud Datos con MQTT
+    
 #ifdef DEBUG_PRINT_ENABLE
     printf("Se comprueba si se han solicitado datos del servidor.\n");
 #endif /* DEBUG_PRINT_ENABLE */
@@ -11,11 +11,12 @@ int SolicitudDatos (fsm_t *this)
     fsm_emergencia_t *fp = (fsm_emergencia_t*) this;
     bool rxSolicitudDatos = false;
 
-    if( *fp->solicitudDatosQueue != 0 ) {
+    if( *fp->solicitudDatosQueue != 0 ) 
+    {
         // Receive a message on the solicitudDatos queue.
         xQueueReceive( *(fp->solicitudDatosQueue), &(rxSolicitudDatos), ( TickType_t ) 0);
 #ifdef DEBUG_PRINT_ENABLE
-        printf("Se ha recibido %d en la cola de solicitudDatos.\n", rxsolicitudDatos);
+        printf("Se ha recibido %d en la cola de solicitudDatos.\n", rxSolicitudDatos);
 #endif /* DEBUG_PRINT_ENABLE */
     } else {
 #ifdef DEBUG_PRINT_ENABLE
@@ -103,20 +104,23 @@ void SendDatos (fsm_t* this)
         sprintf(to_send, "%g", fp->temperatura[i]);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
+        printf("\n");
 #endif /* DEBUG_PRINT_ENABLE */
-        esp_mqtt_client_publish((*fp->client), "/Datos_Baliza/temperatura", to_send, 0, 0, 0);
+        esp_mqtt_client_publish((*fp->client), "Datos_Baliza/temperatura", to_send, 0, 0, 0);
 
         sprintf(to_send, "%g", fp->humedad[i]);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
+        printf("\n");
 #endif /* DEBUG_PRINT_ENABLE */
-        esp_mqtt_client_publish((*fp->client), "/Datos_Baliza/humedad", to_send, 0, 0, 0);
+        esp_mqtt_client_publish((*fp->client), "Datos_Baliza/humedad", to_send, 0, 0, 0);
 
         sprintf(to_send, "%g", fp->gases[i]);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
+        printf("\n");
 #endif /* DEBUG_PRINT_ENABLE */
-        esp_mqtt_client_publish((*fp->client), "/Datos_Baliza/gases", to_send, 0, 0, 0);
+        esp_mqtt_client_publish((*fp->client), "Datos_Baliza/gases", to_send, 0, 0, 0);
     }
 
     return;
@@ -131,7 +135,7 @@ void EnvioSenalEmergencia (fsm_t* this)
 
     fsm_emergencia_t *fp = (fsm_emergencia_t*) this;
 
-    esp_mqtt_client_publish((*fp->client), "incendio", "Puede haber incendio!! Que se envie un dron", 0, 0, 0);
+    esp_mqtt_client_publish((*fp->client), "incendio", "Puede haber incendio!! Que se envie un dron.\n", 0, 0, 0);
     
     return;
 };
