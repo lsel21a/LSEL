@@ -1,5 +1,6 @@
 #include "fsm_emergencia.h"
 #include "drivers_emergencia.h"
+#include "mqtt_client.h"
 
 // Explicit FSM description
 

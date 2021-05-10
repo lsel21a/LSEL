@@ -27,5 +27,5 @@ enum DeteccionIncendio_State{
   INCENDIO,
 };
 
-void  fsm_deteccion_incendio_init ( fsm_deteccion_incendio_t * f, float *temperatura, float *humedad, float *gases, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *incendioQueue, QueueHandle_t *muestreoRapidoQueue);
+void  fsm_deteccion_incendio_init ( fsm_deteccion_incendio_t * this, float *temperatura, float *humedad, float *gases, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *incendioQueue, QueueHandle_t *muestreoRapidoQueue);
 # endif
