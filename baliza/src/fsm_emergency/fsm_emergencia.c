@@ -9,9 +9,9 @@ static fsm_trans_t emergencia_tt[] = {
     {IDLE_EMERGENCIA, SolicitudDatos , IDLE_EMERGENCIA, SendDatos},
     {IDLE_EMERGENCIA, SenalIncendioSil , EMERGENCIA_SILENCIOSA, NULL},
     {EMERGENCIA, SenalNoIncendio , IDLE_EMERGENCIA, NULL},
-    {EMERGENCIA, SolicitudDatos , EMERGENCIA, SendDatos},
+    {EMERGENCIA, SolicitudDatos , EMERGENCIA, SendDatosYEmergencia},
     {EMERGENCIA_SILENCIOSA, SenalNoIncendio , IDLE_EMERGENCIA, NULL},
-    {EMERGENCIA_SILENCIOSA, SolicitudDatos , EMERGENCIA_SILENCIOSA, SendDatos},
+    {EMERGENCIA_SILENCIOSA, SolicitudDatos , EMERGENCIA_SILENCIOSA, SendDatosYEmergencia},
     {-1, NULL, -1, NULL},
 
 };
@@ -24,5 +24,7 @@ void  fsm_emergencia_init ( fsm_emergencia_t * this, QueueHandle_t *incendioQueu
     this->solicitudDatosQueue = solicitudDatosQueue;
     this->datosMQTTQueue = datosMQTTQueue;
     this->client = client;
+#ifdef DEBUG_PRINT_ENABLE
     printf("FSM emergencia inicializada.\n");
+#endif
 };

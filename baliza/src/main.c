@@ -152,7 +152,9 @@ static void fsm_sensor_task(void *arg)
   fsm_init_sensores(&f, &datoValidoQueue, &datosSensoresQueue, &tickQueue);
   
   while (1) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de sensores.\n");
+#endif
     fsm_fire ((fsm_t*)(&f));
     vTaskDelay(XTASK_DELAY);
   }
@@ -167,7 +169,9 @@ static void fsm_deteccion_task(void *arg)
   fsm_deteccion_incendio_init (&f, &datoValidoQueue, &datosSensoresQueue, &incendioQueue, &muestreoRapidoQueue, &datosMQTTQueue);
   
   while (1) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de detección de incendio.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f));
     vTaskDelay(XTASK_DELAY);
   }
@@ -181,7 +185,9 @@ static void fsm_timer_task(void *arg)
   fsm_timer_init (&f, &muestreoRapidoQueue, &tickQueue);
   
   while (1) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de timer.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f));
     vTaskDelay(XTASK_DELAY);
   }
@@ -195,7 +201,9 @@ static void fsm_emergencia_task(void *arg)
   fsm_emergencia_init (&f, &incendioQueue, &solicitudDatosQueue, &datosMQTTQueue, &client);
   
   while (1) {
+#ifdef DEBUG_PRINT_ENABLE
     printf("Disparo de la FSM de emergencia.\n");
+#endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f));
     vTaskDelay(XTASK_DELAY);
   }

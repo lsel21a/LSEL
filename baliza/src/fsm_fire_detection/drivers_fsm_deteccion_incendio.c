@@ -117,6 +117,9 @@ void GetDataFromFsmSensor (fsm_t* this)
           fp->gases[i] = rxDataSensor[i].gas_resistance;
 #ifdef DEBUG_PRINT_ENABLE
           printf("Datos sensor %d recibido \n", i);
+          printf("Se ha recibido %f ºC.\n", fp->temperatura[i]);
+          printf("Se ha recibido %f %%H20.\n", fp->humedad[i]);
+          printf("Se ha recibido %f Ohms de gas.\n", fp->gases[i]);
 #endif /* DEBUG_PRINT_ENABLE */
         }
       }

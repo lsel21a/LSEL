@@ -110,7 +110,7 @@ void SendDatos (fsm_t* this)
     for (int i = 0; i < NUM_SENSORS; i++)
     {
         char topic[512], to_send[512]; //size of the message
-        sprintf(to_send, "%g", rxDataSensor[i].temperature);
+        sprintf(to_send, "%f", rxDataSensor[i].temperature);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
         printf("\n");
@@ -118,7 +118,7 @@ void SendDatos (fsm_t* this)
         sprintf(topic, "Datos_Baliza/temperatura/%d", i);
         esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
 
-        sprintf(to_send, "%g", rxDataSensor[i].humidity);
+        sprintf(to_send, "%f", rxDataSensor[i].humidity);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
         printf("\n");
@@ -126,7 +126,7 @@ void SendDatos (fsm_t* this)
         sprintf(topic, "Datos_Baliza/humedad/%d", i);
         esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
 
-        sprintf(to_send, "%g", rxDataSensor[i].gas_resistance);
+        sprintf(to_send, "%f", rxDataSensor[i].gas_resistance);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
         printf("\n");
@@ -134,7 +134,7 @@ void SendDatos (fsm_t* this)
         sprintf(topic, "Datos_Baliza/gases/%d", i);
         esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
 
-        sprintf(to_send, "%g", rxDataSensor[i].pressure);
+        sprintf(to_send, "%f", rxDataSensor[i].pressure);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
         printf("\n");
@@ -155,7 +155,14 @@ void EnvioSenalEmergencia (fsm_t* this)
 
     fsm_emergencia_t *fp = (fsm_emergencia_t*) this;
 
-    esp_mqtt_client_publish((*fp->client), "incendio", "Puede haber incendio!! Que se envie un dron.\n", 0, 0, 0);
+    char topic[512];
+    sprintf(topic, "incendio/%d", 0);
+    esp_mqtt_client_publish((*fp->client), topic, "Puede haber incendio!! Que se envie un dron.\n", 0, 0, 0);
     
     return;
 };
+
+void SendDatosYEmergencia (fsm_t* this){
+    EnvioSenalEmergencia (this);
+    SendDatos (this);
+}
