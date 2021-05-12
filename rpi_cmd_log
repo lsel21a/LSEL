@@ -72,8 +72,10 @@ sudo cp ca* /etc/mosquitto/ca_certificates/
 sudo cp server* /etc/mosquitto/certs/
 /etc/mosquitto/mosquitto.conf
 [append]
+ >> # Default listener
+ >> listener 1883
  >> # Add secure settings
- >> port 8883
+ >> listener 8883
  >> cafile /etc/mosquitto/ca_certificates/ca.crt
  >> keyfile /etc/mosquitto/certs/server.key
  >> certfile /etc/mosquitto/certs/server.crt     
