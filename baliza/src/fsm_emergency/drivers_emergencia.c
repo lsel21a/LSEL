@@ -97,30 +97,50 @@ void SendDatos (fsm_t* this)
 #endif /* DEBUG_PRINT_ENABLE */
 
     fsm_emergencia_t *fp = (fsm_emergencia_t *)this;
+    sensors_data_t rxDataSensor[NUM_SENSORS];
+
+    // Se lee la cola de datos
+    if ( xQueuePeek(*(fp->datosMQTTQueue), (void *) rxDataSensor, ( TickType_t ) 0) != pdTRUE ){
+#ifdef DEBUG_PRINT_ENABLE
+    pritnf("No hemos recibido ningún dato.\n");
+#endif
+        return;
+    }
 
     for (int i = 0; i < NUM_SENSORS; i++)
     {
-        char to_send[15]; //size of the message
-        sprintf(to_send, "%g", fp->temperatura[i]);
+        char topic[512], to_send[512]; //size of the message
+        sprintf(to_send, "%g", rxDataSensor[i].temperature);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
         printf("\n");
 #endif /* DEBUG_PRINT_ENABLE */
-        esp_mqtt_client_publish((*fp->client), "Datos_Baliza/temperatura", to_send, 0, 0, 0);
+        sprintf(topic, "Datos_Baliza/temperatura/%d", i);
+        esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
 
-        sprintf(to_send, "%g", fp->humedad[i]);
+        sprintf(to_send, "%g", rxDataSensor[i].humidity);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
         printf("\n");
 #endif /* DEBUG_PRINT_ENABLE */
-        esp_mqtt_client_publish((*fp->client), "Datos_Baliza/humedad", to_send, 0, 0, 0);
+        sprintf(topic, "Datos_Baliza/humedad/%d", i);
+        esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
 
-        sprintf(to_send, "%g", fp->gases[i]);
+        sprintf(to_send, "%g", rxDataSensor[i].gas_resistance);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
         printf("\n");
 #endif /* DEBUG_PRINT_ENABLE */
-        esp_mqtt_client_publish((*fp->client), "Datos_Baliza/gases", to_send, 0, 0, 0);
+        sprintf(topic, "Datos_Baliza/gases/%d", i);
+        esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
+
+        sprintf(to_send, "%g", rxDataSensor[i].pressure);
+#ifdef DEBUG_PRINT_ENABLE
+        printf(to_send);
+        printf("\n");
+#endif /* DEBUG_PRINT_ENABLE */
+        sprintf(topic, "Datos_Baliza/presion/%d", i);
+        esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
     }
 
     return;

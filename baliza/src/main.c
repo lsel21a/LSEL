@@ -14,10 +14,11 @@
 
 #define XTASK_DELAY 10*portTICK_PERIOD_MS
 #define TAREA_SEPARADAS
+#define MQTT_URL "mqtt://home.ddns.mrrb.eu:1883"
 
 esp_mqtt_client_handle_t client;
-float temperatura[NUM_SENSORS], humedad[NUM_SENSORS], gases[NUM_SENSORS];
-QueueHandle_t datoValidoQueue, datosSensoresQueue, tickQueue, incendioQueue, muestreoRapidoQueue, solicitudDatosQueue;
+float *temperatura, *humedad, *gases;
+QueueHandle_t datoValidoQueue, datosSensoresQueue, tickQueue, incendioQueue, muestreoRapidoQueue, solicitudDatosQueue, datosMQTTQueue;
 
 static const char *TAG = "MQTT_EXAMPLE";
 
@@ -114,7 +115,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 #endif /* DEBUG_PRINT_ENABLE */
     }
     break;
-  case MQTT_EVENT_ERROR:
+  /* case MQTT_EVENT_ERROR:
     ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
     if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT)
     {
@@ -123,7 +124,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
       //log_error_if_nonzero("captured as transport's socket errno",  event->error_handle->esp_transport_sock_errno);
       //ESP_LOGI(TAG, "Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
     }
-    break;
+    break; */
   default:
     ESP_LOGI(TAG, "Other event id:%d", event->event_id);
     break;
@@ -133,7 +134,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 static void mqtt_app_start()
 {
     esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = "mqtt://192.168.4.1:1883",
+        .uri = MQTT_URL,
     };
 
 
@@ -163,7 +164,7 @@ static void fsm_deteccion_task(void *arg)
 {
 
   fsm_deteccion_incendio_t f;
-  fsm_deteccion_incendio_init (&f, &(temperatura[NUM_SENSORS]), &(humedad[NUM_SENSORS]), &(gases[NUM_SENSORS]), &datoValidoQueue, &datosSensoresQueue, &incendioQueue, &muestreoRapidoQueue);
+  fsm_deteccion_incendio_init (&f, &datoValidoQueue, &datosSensoresQueue, &incendioQueue, &muestreoRapidoQueue, &datosMQTTQueue);
   
   while (1) {
     printf("Disparo de la FSM de detección de incendio.\n");
@@ -191,7 +192,7 @@ static void fsm_emergencia_task(void *arg)
 {
 
   fsm_emergencia_t f;
-  fsm_emergencia_init (&f, &(temperatura[NUM_SENSORS]), &(humedad[NUM_SENSORS]), &(gases[NUM_SENSORS]), &incendioQueue, &solicitudDatosQueue, &client);
+  fsm_emergencia_init (&f, &incendioQueue, &solicitudDatosQueue, &datosMQTTQueue, &client);
   
   while (1) {
     printf("Disparo de la FSM de emergencia.\n");
@@ -204,36 +205,38 @@ static void fsm_emergencia_task(void *arg)
 
 void app_main() 
 {   
-    ESP_LOGI(TAG, "[APP] Startup..");
-    ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
-    ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
+  ESP_LOGI(TAG, "[APP] Startup..");
+  ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
+  ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
 
-    esp_log_level_set("*", ESP_LOG_INFO);
-    esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
-    esp_log_level_set("MQTT_EXAMPLE", ESP_LOG_VERBOSE);
-    esp_log_level_set("TRANSPORT_BASE", ESP_LOG_VERBOSE);
-    esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
-    esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
-    esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
+  esp_log_level_set("*", ESP_LOG_INFO);
+  esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
+  esp_log_level_set("MQTT_EXAMPLE", ESP_LOG_VERBOSE);
+  esp_log_level_set("TRANSPORT_BASE", ESP_LOG_VERBOSE);
+  esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
+  esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
+  esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
 
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+  ESP_ERROR_CHECK(nvs_flash_init());
+  ESP_ERROR_CHECK(esp_netif_init());
+  ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-     * Read "Establishing Wi-Fi or Ethernet Connection" section in
-     * examples/protocols/README.md for more information about this function.
-     */
-    ESP_ERROR_CHECK(example_connect());
+  /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
+    * Read "Establishing Wi-Fi or Ethernet Connection" section in
+    * examples/protocols/README.md for more information about this function.
+    */
+  ESP_ERROR_CHECK(example_connect());
 
 
-    mqtt_app_start();  
+  mqtt_app_start();  
   // Init I2C
   i2cdev_init();
 
   // Creamos las colas
   datoValidoQueue = xQueueCreate(1, sizeof(bool));
   datosSensoresQueue = xQueueCreate(1, NUM_SENSORS*sizeof(sensors_data_t));
+  datosMQTTQueue = xQueueCreate(1, NUM_SENSORS*sizeof(sensors_data_t));
+  muestreoRapidoQueue = xQueueCreate(1, sizeof(bool));
   tickQueue = xQueueCreate(1, sizeof(bool));
   incendioQueue = xQueueCreate(1, sizeof(bool));
   solicitudDatosQueue = xQueueCreate(1, sizeof(bool));
@@ -258,6 +261,7 @@ void app_main()
   rslt = xTaskCreate(fsm_emergencia_task, "fsm_emergencia_task", 4096, NULL, 1, NULL);
   if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
     printf("Error in allocating memory!\n");
+
 #else
   fsm_deteccion_incendio_t f_inc;
   fsm_deteccion_incendio_init (&f_inc, &datoValidoQueue, &datosSensoresQueue, &incendioQueue, &muestreoRapidoQueue);

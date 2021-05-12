@@ -11,8 +11,7 @@
 
 typedef struct  _fsm_emergencia_t {
     fsm_t fsm;
-    QueueHandle_t *incendioQueue, *solicitudDatosQueue;
-    float *temperatura, *humedad, *gases;
+    QueueHandle_t *incendioQueue, *solicitudDatosQueue, *datosMQTTQueue;
     esp_mqtt_client_handle_t *client;
     } fsm_emergencia_t ;
 
@@ -25,6 +24,6 @@ enum emergencia_State{
 
 };
 
-void  fsm_emergencia_init ( fsm_emergencia_t *this, float *temperatura, float *humedad, float *gases, QueueHandle_t *incendioQueue, QueueHandle_t *solicitudDatosQueue, esp_mqtt_client_handle_t *client);
+void  fsm_emergencia_init ( fsm_emergencia_t *this, QueueHandle_t *incendioQueue, QueueHandle_t *solicitudDatosQueue, QueueHandle_t *datosMQTTQueue, esp_mqtt_client_handle_t *client);
 
 # endif 

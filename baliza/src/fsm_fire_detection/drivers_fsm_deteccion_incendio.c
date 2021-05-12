@@ -105,6 +105,11 @@ void GetDataFromFsmSensor (fsm_t* this)
    {
       if( xQueueReceive(*(fp->datosSensoresQueue), (void *) rxDataSensor, ( TickType_t ) 0))       
       {
+        // Se envían los datos a la FSM Emergencia
+        xQueueReset(*(fp->datosMQTTQueue));
+        xQueueSend(*(fp->datosMQTTQueue), (void *) rxDataSensor, ( TickType_t ) 0);
+
+        // Se almacenan los datos
         for(int i=0; i<NUM_SENSORS; i++)
         {
           fp->temperatura[i] = rxDataSensor[i].temperature;
