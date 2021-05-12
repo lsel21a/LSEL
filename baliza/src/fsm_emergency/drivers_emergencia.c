@@ -1,5 +1,5 @@
 #include "drivers_emergencia.h"
-
+#include "gps/drivers_gps.h"
 
 int SolicitudDatos (fsm_t *this)
 {
@@ -97,6 +97,7 @@ void SendDatos (fsm_t* this)
 #endif /* DEBUG_PRINT_ENABLE */
 
     fsm_emergencia_t *fp = (fsm_emergencia_t *)this;
+    float longitud, latitud;
 
     for (int i = 0; i < NUM_SENSORS; i++)
     {
@@ -123,6 +124,17 @@ void SendDatos (fsm_t* this)
         esp_mqtt_client_publish((*fp->client), "Datos_Baliza/gases", to_send, 0, 0, 0);
     }
 
+    read_GPS( &longitud, &latitud);
+
+    char to_send[60]; //size of the message
+    sprintf(to_send, "La posicion de la baliza es: %g, %g \n", longitud, latitud );
+#if 1  // def DEBUG_PRINT_ENABLE
+    printf(to_send);
+    printf("\n");
+#endif /* DEBUG_PRINT_ENABLE */
+    esp_mqtt_client_publish((*fp->client), "Datos_Baliza/posicion", to_send, 0, 0, 0);    
+
+
     return;
 };
 
@@ -134,8 +146,22 @@ void EnvioSenalEmergencia (fsm_t* this)
 #endif /* DEBUG_PRINT_ENABLE */
 
     fsm_emergencia_t *fp = (fsm_emergencia_t*) this;
+    float longitud, latitud;
 
+    // Send emergency signal
     esp_mqtt_client_publish((*fp->client), "incendio", "Puede haber incendio!! Que se envie un dron.\n", 0, 0, 0);
     
+
+    read_GPS( &longitud, &latitud);
+
+    char to_send[60]; //size of the message
+    sprintf(to_send, "La posicion de la baliza es: %g, %g \n", longitud, latitud );
+#if 1  // def DEBUG_PRINT_ENABLE
+    printf(to_send);
+    printf("\n");
+#endif /* DEBUG_PRINT_ENABLE */
+    esp_mqtt_client_publish((*fp->client), "Datos_Baliza/posicion", to_send, 0, 0, 0);    
+
+
     return;
 };
