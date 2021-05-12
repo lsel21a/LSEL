@@ -102,7 +102,7 @@ void SendDatos (fsm_t* this)
     // Se lee la cola de datos
     if ( xQueuePeek(*(fp->datosMQTTQueue), (void *) rxDataSensor, ( TickType_t ) 0) != pdTRUE ){
 #ifdef DEBUG_PRINT_ENABLE
-    pritnf("No hemos recibido ningún dato.\n");
+    printf("No hemos recibido ningún dato.\n");
 #endif
         return;
     }
