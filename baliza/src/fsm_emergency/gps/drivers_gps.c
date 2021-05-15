@@ -1,6 +1,7 @@
 #include "drivers_gps.h"
+#include "config.h"
 
-uart_port_t uart_num = UART_NUM_2;
+uart_port_t uart_num;
 
 void init_GPS(uart_port_t uart){
 	uart_num = uart;
@@ -16,13 +17,13 @@ void init_GPS(uart_port_t uart){
     ESP_ERROR_CHECK(uart_param_config(uart_num, &uart_config));
 
     // Pines UART (TX, RX, RTS, CTS)
-    ESP_ERROR_CHECK(uart_set_pin(uart_num, 15, GPS_RX_PIN, 18, 19));
+    ESP_ERROR_CHECK(uart_set_pin(uart_num, 15, CONFIG_GPS_RX_PIN, 18, 19));
 
     // Se crea la cola para los datos de la UART
     static QueueHandle_t uart_queue;
 
     // Se instala el driver del UART
-    ESP_ERROR_CHECK(uart_driver_install(uart_num, UART_RX_BUF_SIZE, UART_RX_BUF_SIZE, 10, &uart_queue, 0));
+    ESP_ERROR_CHECK(uart_driver_install(uart_num, CONFIG_GPS_UART_RX_BUF_SIZE, CONFIG_GPS_UART_RX_BUF_SIZE, 10, &uart_queue, 0));
 }
 
 char *readLine(uart_port_t uart) {

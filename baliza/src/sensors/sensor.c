@@ -14,6 +14,8 @@
 #include "sensor.h"
 #include "sensor_defs.h"
 
+#include "config.h"
+
 
 sensors_status_t
 sensors_init(sensors_config_t* p_config) {
@@ -21,7 +23,7 @@ sensors_init(sensors_config_t* p_config) {
   memset(&(p_config->bme_dev), 0, sizeof(bme680_t));
 
   // Init BME680 struct
-  ESP_ERROR_CHECK(bme680_init_desc(&(p_config->bme_dev), SENSORS_BME68X_I2C_ADDR, PORT, SDA_GPIO, SCL_GPIO));
+  ESP_ERROR_CHECK(bme680_init_desc(&(p_config->bme_dev), CONFIG_SENSORS_BME68X_I2C_ADDR, CONFIG_SENSOR_PORT, CONFIG_SENSOR_SDA_GPIO, CONFIG_SENSOR_SCL_GPIO));
 
   // Init BME680 sensor
   ESP_ERROR_CHECK(bme680_init_sensor(&(p_config->bme_dev)));
@@ -37,7 +39,7 @@ sensors_init(sensors_config_t* p_config) {
   bme680_use_heater_profile(&(p_config->bme_dev), 0);
 
   // Set ambient temperature
-  bme680_set_ambient_temperature(&(p_config->bme_dev), SENSORS_AMBIENT_TEMP);
+  bme680_set_ambient_temperature(&(p_config->bme_dev), CONFIG_SENSORS_AMBIENT_TEMP);
 
   return SENSORS_OK;
 }

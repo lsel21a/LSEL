@@ -1,4 +1,10 @@
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+
 #include "drivers_fsm_deteccion_incendio.h"
+#include "fsm_deteccion_incendio.h"
+#include "config.h"
 
 int ReceiveDatoValido (fsm_t* this) 
 {
@@ -45,7 +51,7 @@ int NoHayPeligro (fsm_t * this)
   int resultado = 0;
 
   fsm_deteccion_incendio_t *fp = (fsm_deteccion_incendio_t *) this;
-  resultado = !(algoritmo_incendio(fp->temperatura, fp->humedad, fp->gases, NUM_SENSORS)); 
+  resultado = !(algoritmo_incendio(fp->temperatura, fp->humedad, fp->gases, CONFIG_SENSOR_NUM)); 
   
 #ifdef DEBUG_PRINT_ENABLE
   printf("Algoritmo ha devuelto %d \n", resultado);
@@ -59,7 +65,7 @@ int PuedeSerIncendio (fsm_t* this)
   int resultado = 0;
 
   fsm_deteccion_incendio_t *fp = (fsm_deteccion_incendio_t *) this;
-  resultado = algoritmo_incendio(fp->temperatura, fp->humedad, fp->gases, NUM_SENSORS); 
+  resultado = algoritmo_incendio(fp->temperatura, fp->humedad, fp->gases, CONFIG_SENSOR_NUM); 
 
 #ifdef DEBUG_PRINT_ENABLE
   printf("Algoritmo ha devuelto %d \n", resultado);
@@ -73,7 +79,7 @@ int HayIncendio (fsm_t* this)
   int resultado = 0;
 
   fsm_deteccion_incendio_t *fp = (fsm_deteccion_incendio_t *) this;
-  resultado = algoritmo_incendio(fp->temperatura, fp->humedad, fp->gases, NUM_SENSORS); 
+  resultado = algoritmo_incendio(fp->temperatura, fp->humedad, fp->gases, CONFIG_SENSOR_NUM); 
 
 #ifdef DEBUG_PRINT_ENABLE
   printf("Algoritmo ha devuelto %d \n", resultado);
@@ -87,7 +93,7 @@ int Incendio_to_Idle (fsm_t* this)
   int resultado = 0;
 
   fsm_deteccion_incendio_t *fp = (fsm_deteccion_incendio_t *) this;
-  resultado = !(algoritmo_incendio( fp->temperatura, fp->humedad, fp->gases, NUM_SENSORS)); 
+  resultado = !(algoritmo_incendio( fp->temperatura, fp->humedad, fp->gases, CONFIG_SENSOR_NUM)); 
   
 #ifdef DEBUG_PRINT_ENABLE
   printf("Algoritmo ha devuelto %d \n", resultado);
@@ -99,7 +105,7 @@ int Incendio_to_Idle (fsm_t* this)
 void GetDataFromFsmSensor (fsm_t* this)
 {
   fsm_deteccion_incendio_t *fp = (fsm_deteccion_incendio_t *) this;
-  sensors_data_t rxDataSensor[NUM_SENSORS];
+  sensors_data_t rxDataSensor[CONFIG_SENSOR_NUM];
 
    if( *(fp->datosSensoresQueue) != 0 )
    {
@@ -110,7 +116,7 @@ void GetDataFromFsmSensor (fsm_t* this)
         xQueueSend(*(fp->datosMQTTQueue), (void *) rxDataSensor, ( TickType_t ) 0);
 
         // Se almacenan los datos
-        for(int i=0; i<NUM_SENSORS; i++)
+        for(int i=0; i<CONFIG_SENSOR_NUM; i++)
         {
           fp->temperatura[i] = rxDataSensor[i].temperature;
           fp->humedad[i] = rxDataSensor[i].humidity;

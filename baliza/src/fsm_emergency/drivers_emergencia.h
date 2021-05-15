@@ -7,8 +7,6 @@
 #include "fsm_emergencia.h"
 #include <stdbool.h>
 
-#define MODO_SILENCIOSO 0
-
 int SolicitudDatos (fsm_t *this);
 int SenalIncendio (fsm_t *this);
 int SenalNoIncendio (fsm_t *this);

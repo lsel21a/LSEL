@@ -1,17 +1,17 @@
 #ifndef _FSM_TIMER_H
 #define _FSM_TIMER_H
+
 #include <stdbool.h>
 #include <stdio.h>
 //#include <signal.h>
+
 #include "fsm.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 
-enum {  
-
+enum {
   MUESTREO_NORMAL,
   MUESTREO_RAPIDO,
-
 };
 
 typedef struct  _fsm_timer_t {

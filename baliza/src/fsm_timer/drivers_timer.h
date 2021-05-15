@@ -1,11 +1,13 @@
 #ifndef DRIVERS_TIMER_H
 #define DRIVERS_TIMER_H
 
+#include <stdbool.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "fsm_timer.h"
-#include <stdbool.h>
+
+#include "fsm.h"
 
 
 int ReceiveMuestreoRapido (fsm_t* this);

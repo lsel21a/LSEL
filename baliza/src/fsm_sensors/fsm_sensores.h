@@ -1,8 +1,10 @@
 #ifndef FSM_SENSORES_H
 #define FSM_SENSORES_H
 
-#include "fsm.h"
 #include <stdbool.h>
+
+#include "fsm.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 

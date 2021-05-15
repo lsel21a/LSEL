@@ -1,8 +1,11 @@
 #include "fsm_timer.h"
 #include "drivers_timer.h"
 
-// Explicit FSM description
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
 
+// Explicit FSM description
 static fsm_trans_t timer_tt[] = {
     {MUESTREO_NORMAL, ReceiveMuestreoRapido, MUESTREO_RAPIDO, NULL},
     {MUESTREO_NORMAL, WaitNormal , MUESTREO_NORMAL, SendTick},
@@ -10,8 +13,6 @@ static fsm_trans_t timer_tt[] = {
     {MUESTREO_RAPIDO, WaitRapido  , MUESTREO_RAPIDO, SendTick},
     {-1, NULL, -1, NULL},
 };
-
-
 
 void  fsm_timer_init ( fsm_timer_t * this, QueueHandle_t *muestreoRapidoQueue, QueueHandle_t *tickQueue)
 {

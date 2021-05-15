@@ -1,15 +1,19 @@
-#include "drivers_fsm_sensores.h"
+#include <string.h>
+#include <stdbool.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "string.h"
+
+#include "drivers_fsm_sensores.h"
+#include "fsm_sensores.h"
+
+#include "config.h"
 
 static bool deadline = false;
-// static bool valores_sensores = false;
 static bool datos_validos = false;
-// static bool Start = false;
 
-sensors_config_t devices[NUM_SENSORS];
+sensors_config_t devices[CONFIG_SENSOR_NUM];
 
 int checkStart_ON(fsm_t *this)
 {
@@ -42,7 +46,7 @@ void Activa_Sensores(fsm_t *this){
 #endif /* DEBUG_PRINT_ENABLE */
 
     int i;
-    for (i=0; i<NUM_SENSORS; i++){
+    for (i=0; i<CONFIG_SENSOR_NUM; i++){
         if(sensors_init(&(devices[i])) != SENSORS_OK)
         {
 #ifdef DEBUG_PRINT_ENABLE
@@ -73,7 +77,7 @@ void Lectura_Sensores(fsm_t *this){
 #endif /* DEBUG_PRINT_ENABLE */
 
     int i;
-    for(i=0; i<NUM_SENSORS; i++){
+    for(i=0; i<CONFIG_SENSOR_NUM; i++){
         if(get_data(&(devices[i])) != SENSORS_OK)
         {
 #ifdef DEBUG_PRINT_ENABLE
@@ -127,10 +131,10 @@ void Send_Data(fsm_t *this){
 
     fsm_sensores_t *fp = (fsm_sensores_t*) this;
 
-    sensors_data_t txDataSensor[NUM_SENSORS];
+    sensors_data_t txDataSensor[CONFIG_SENSOR_NUM];
 
     int i;
-    for (i=0;i<NUM_SENSORS;i++){
+    for (i=0;i<CONFIG_SENSOR_NUM;i++){
         memcpy(&(txDataSensor[i]), &(devices[i].data), sizeof(sensors_data_t));
 #ifdef DEBUG_PRINT_ENABLE
     printf("Se envia %f ºC.\n", txDataSensor[i].temperature);
@@ -155,7 +159,7 @@ void Apagar_Sensores(fsm_t *this){
 #endif /* DEBUG_PRINT_ENABLE */
 
     int i;
-    for(i=0; i<NUM_SENSORS; i++){
+    for(i=0; i<CONFIG_SENSOR_NUM; i++){
         if(sleep_data(&(devices[i])) != SENSORS_OK)
         {
 #ifdef DEBUG_PRINT_ENABLE

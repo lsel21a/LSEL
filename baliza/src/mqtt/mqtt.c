@@ -1,7 +1,14 @@
+#include "esp_log.h"
+#include "mqtt_client.h"
+#include "esp_wifi.h"
+#include "esp_system.h"
+#include "nvs_flash.h"
+#include "esp_event.h"
+#include "esp_netif.h"
+#include "protocol_examples_common.h"
+
 #include "mqtt.h"
-
-#define MQTT_URL "mqtt://home.ddns.mrrb.eu:1883"
-
+#include "config.h"
 
 static const char *TAG = "MQTT_EXAMPLE";
 static esp_mqtt_client_handle_t client_st;
@@ -67,7 +74,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 #ifdef DEBUG_PRINT_ENABLE
     ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
 #endif
-    esp_mqtt_client_subscribe(client_st, "solicitudDatos", 0);
+    esp_mqtt_client_subscribe(client_st, CONFIG_MQTT_TOPIC_SOLICITUD, 0);
     break;
   case MQTT_EVENT_DISCONNECTED:
 #ifdef DEBUG_PRINT_ENABLE
@@ -104,7 +111,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
       memcpy(to_compare, event->topic, event->topic_len);
       to_compare[14] = '\0';
 
-      if (strcmp(to_compare, "solicitudDatos") == 0)
+      if (strcmp(to_compare, CONFIG_MQTT_TOPIC_SOLICITUD) == 0)
       {
         char to_compare2[5];
         memcpy(to_compare2, event->data, event->data_len);
@@ -164,7 +171,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 void mqtt_app_start(esp_mqtt_client_handle_t **client)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = MQTT_URL,
+        .uri = CONFIG_MQTT_URL,
     };
 
 

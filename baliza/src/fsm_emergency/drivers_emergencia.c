@@ -1,6 +1,6 @@
 #include "drivers_emergencia.h"
 #include "gps/drivers_gps.h"
-
+#include "config.h"
 
 int SolicitudDatos (fsm_t *this)
 {
@@ -45,7 +45,7 @@ int SenalIncendio (fsm_t* this)
 #endif /* DEBUG_PRINT_ENABLE */
         return 0;
     }
-    return (rxIncendio && !MODO_SILENCIOSO);
+    return (rxIncendio && !CONFIG_EMERGENCIA_MODO_SILENCIOSO);
 };
 
 
@@ -87,7 +87,7 @@ int SenalIncendioSil (fsm_t* this)
 #endif /* DEBUG_PRINT_ENABLE */
         return 0;
     }
-    return (rxIncendio && MODO_SILENCIOSO);
+    return (rxIncendio && CONFIG_EMERGENCIA_MODO_SILENCIOSO);
 };
 
 
@@ -98,7 +98,7 @@ void SendDatos (fsm_t* this)
 #endif /* DEBUG_PRINT_ENABLE */
 
     fsm_emergencia_t *fp = (fsm_emergencia_t *)this;
-    sensors_data_t rxDataSensor[NUM_SENSORS];
+    sensors_data_t rxDataSensor[CONFIG_SENSOR_NUM];
 
     // Se lee la cola de datos
     if ( xQueuePeek(*(fp->datosMQTTQueue), (void *) rxDataSensor, ( TickType_t ) 0) != pdTRUE ){
@@ -110,14 +110,14 @@ void SendDatos (fsm_t* this)
 
     char topic[512], to_send[512]; //size of the message
 
-    for (int i = 0; i < NUM_SENSORS; i++)
+    for (int i = 0; i < CONFIG_SENSOR_NUM; i++)
     {
         sprintf(to_send, "%f", rxDataSensor[i].temperature);
 #ifdef DEBUG_PRINT_ENABLE
         printf(to_send);
         printf("\n");
 #endif /* DEBUG_PRINT_ENABLE */
-        sprintf(topic, "Datos_Baliza/temperatura/%d", i);
+        sprintf(topic, "%s/%d/%s/%d", CONFIG_MQTT_TOPIC_PREFIX, CONFIG_BALIZA_ID, CONFIG_MQTT_TOPIC_TEMPERATURA, i);
         esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
 
         sprintf(to_send, "%f", rxDataSensor[i].humidity);
@@ -125,7 +125,7 @@ void SendDatos (fsm_t* this)
         printf(to_send);
         printf("\n");
 #endif /* DEBUG_PRINT_ENABLE */
-        sprintf(topic, "Datos_Baliza/humedad/%d", i);
+        sprintf(topic, "%s/%d/%s/%d", CONFIG_MQTT_TOPIC_PREFIX, CONFIG_BALIZA_ID, CONFIG_MQTT_TOPIC_HUMEDAD, i);
         esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
 
         sprintf(to_send, "%f", rxDataSensor[i].gas_resistance);
@@ -133,7 +133,7 @@ void SendDatos (fsm_t* this)
         printf(to_send);
         printf("\n");
 #endif /* DEBUG_PRINT_ENABLE */
-        sprintf(topic, "Datos_Baliza/gases/%d", i);
+        sprintf(topic, "%s/%d/%s/%d", CONFIG_MQTT_TOPIC_PREFIX, CONFIG_BALIZA_ID, CONFIG_MQTT_TOPIC_GASES, i);
         esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
 
         sprintf(to_send, "%f", rxDataSensor[i].pressure);
@@ -141,7 +141,7 @@ void SendDatos (fsm_t* this)
         printf(to_send);
         printf("\n");
 #endif /* DEBUG_PRINT_ENABLE */
-        sprintf(topic, "Datos_Baliza/presion/%d", i);
+        sprintf(topic, "%s/%d/%s/%d", CONFIG_MQTT_TOPIC_PREFIX, CONFIG_BALIZA_ID, CONFIG_MQTT_TOPIC_PRESION, i);
         esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
     }
 
@@ -149,11 +149,10 @@ void SendDatos (fsm_t* this)
     float longitud, latitud;
     read_GPS( &longitud, &latitud);
 
-    sprintf(to_send, "La posicion de la baliza es: %f, %f \n", longitud, latitud );
-    sprintf(topic, "Datos_Baliza/posicion/%d", 0);
+    sprintf(to_send, "%f; %f \n", longitud, latitud );
+    sprintf(topic, "%s/%d/%s", CONFIG_MQTT_TOPIC_PREFIX, CONFIG_BALIZA_ID, CONFIG_MQTT_TOPIC_GPS);
 #ifdef DEBUG_PRINT_ENABLE
-    printf(to_send);
-    printf("\n");
+    printf("%s\n", to_send);
 #endif /* DEBUG_PRINT_ENABLE */
     esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
 
@@ -170,18 +169,17 @@ void EnvioSenalEmergencia (fsm_t* this)
     fsm_emergencia_t *fp = (fsm_emergencia_t*) this;
 
     char topic[512], to_send[512];
-    sprintf(topic, "incendio/%d", 0);
+    sprintf(topic, "%s/%d/%s", CONFIG_MQTT_TOPIC_PREFIX, CONFIG_BALIZA_ID, CONFIG_MQTT_TOPIC_INCENDIO);
     esp_mqtt_client_publish((*fp->client), topic, "Puede haber incendio!! Que se envie un dron.\n", 0, 0, 0);
 
     // Lectura del GPS
     float longitud, latitud;
     read_GPS( &longitud, &latitud);
 
-    sprintf(to_send, "La posicion de la baliza es: %f, %f \n", longitud, latitud );
-    sprintf(topic, "Datos_Baliza/posicion/%d", 0);
+    sprintf(to_send, "%f; %f \n", longitud, latitud );
+    sprintf(topic, "%s/%d/%s", CONFIG_MQTT_TOPIC_PREFIX, CONFIG_BALIZA_ID, CONFIG_MQTT_TOPIC_GPS);
 #ifdef DEBUG_PRINT_ENABLE
-    printf(to_send);
-    printf("\n");
+    printf("%s\n", to_send);
 #endif /* DEBUG_PRINT_ENABLE */
     esp_mqtt_client_publish((*fp->client), topic, to_send, 0, 0, 0);
     

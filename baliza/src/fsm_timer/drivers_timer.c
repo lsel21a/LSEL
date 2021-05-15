@@ -1,4 +1,12 @@
+#include <stdbool.h>
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #include "drivers_timer.h"
+#include "fsm_timer.h"
+
+#include "config.h"
 
 
 int ReceiveMuestreoRapido (fsm_t* this) 
@@ -25,7 +33,7 @@ int WaitNormal (fsm_t* this)
 {
     TickType_t xDelay;
 
-    xDelay= 2000 / portTICK_PERIOD_MS;
+    xDelay = (CONFIG_TIMER_MEASURE_NORMAL * 1000) / portTICK_PERIOD_MS;
     vTaskDelay( xDelay );
 #ifdef DEBUG_PRINT_ENABLE
     printf("Fin de espera Tick normal.\n");
@@ -60,7 +68,7 @@ int WaitRapido (fsm_t* this)
 {
     TickType_t xDelay;
 
-    xDelay= 1000 / portTICK_PERIOD_MS;
+    xDelay = (CONFIG_TIMER_MEASURE_QUICK * 1000) / portTICK_PERIOD_MS;
     vTaskDelay( xDelay );
 #ifdef DEBUG_PRINT_ENABLE
     printf("Fin de espera Tick rapido.\n");

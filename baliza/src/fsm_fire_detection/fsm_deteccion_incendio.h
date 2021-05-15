@@ -3,19 +3,22 @@
 
 #include <stddef.h>
 #include <stdio.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "fsm.h"
+
 #include "algorithm/algoritmo.h"
 #include "drivers_fsm_deteccion_incendio.h"
 #include "sensors/sensor_defs.h"
 
+#include "config.h"
 
 typedef struct _fsm_deteccion_incendio_t {
   fsm_t fsm;
   QueueHandle_t *datoValidoQueue, *datosSensoresQueue, *incendioQueue, *muestreoRapidoQueue, *datosMQTTQueue;
-  float temperatura[NUM_SENSORS], humedad[NUM_SENSORS], gases[NUM_SENSORS];
+  float temperatura[CONFIG_SENSOR_NUM], humedad[CONFIG_SENSOR_NUM], gases[CONFIG_SENSOR_NUM];
 } fsm_deteccion_incendio_t;
 
 

@@ -1,11 +1,7 @@
 #ifndef DRIVERS_FSM_DET_INC_H
 #define DRIVERS_FSM_DET_INC_H
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
-#include "fsm_deteccion_incendio.h"
-
+#include "fsm.h"
 
 int ReceiveDatoValido (fsm_t* this);
 int ReceiveDatoValidoIncendio (fsm_t* this);

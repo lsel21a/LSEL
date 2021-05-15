@@ -7,9 +7,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-
-#define XTASK_DELAY 10*portTICK_PERIOD_MS
-#define UART_PORT UART_NUM_2
+#include "config.h"
 
 esp_mqtt_client_handle_t *client;
 float *temperatura, *humedad, *gases;
@@ -26,7 +24,7 @@ static void fsm_sensor_task(void *arg)
     printf("Disparo de la FSM de sensores.\n");
 #endif
     fsm_fire ((fsm_t*)(&f));
-    vTaskDelay(XTASK_DELAY);
+    vTaskDelay(CONFIG_XTASK_DELAY);
   }
   return;
 }
@@ -43,7 +41,7 @@ static void fsm_deteccion_task(void *arg)
     printf("Disparo de la FSM de detección de incendio.\n");
 #endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f));
-    vTaskDelay(XTASK_DELAY);
+    vTaskDelay(CONFIG_XTASK_DELAY);
   }
   return;
 }
@@ -59,7 +57,7 @@ static void fsm_timer_task(void *arg)
     printf("Disparo de la FSM de timer.\n");
 #endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f));
-    vTaskDelay(XTASK_DELAY);
+    vTaskDelay(CONFIG_XTASK_DELAY);
   }
   return;
 }
@@ -75,7 +73,7 @@ static void fsm_emergencia_task(void *arg)
     printf("Disparo de la FSM de emergencia.\n");
 #endif /* DEBUG_PRINT_ENABLE */
     fsm_fire ((fsm_t*)(&f));
-    vTaskDelay(XTASK_DELAY);
+    vTaskDelay(CONFIG_XTASK_DELAY);
   }
   return;
 }
@@ -84,8 +82,8 @@ void app_main() {
 
   // Creamos las colas
   datoValidoQueue = xQueueCreate(1, sizeof(bool));
-  datosSensoresQueue = xQueueCreate(1, NUM_SENSORS*sizeof(sensors_data_t));
-  datosMQTTQueue = xQueueCreate(1, NUM_SENSORS*sizeof(sensors_data_t));
+  datosSensoresQueue = xQueueCreate(1, CONFIG_SENSOR_NUM*sizeof(sensors_data_t));
+  datosMQTTQueue = xQueueCreate(1, CONFIG_SENSOR_NUM*sizeof(sensors_data_t));
   muestreoRapidoQueue = xQueueCreate(1, sizeof(bool));
   tickQueue = xQueueCreate(1, sizeof(bool));
   incendioQueue = xQueueCreate(1, sizeof(bool));
@@ -105,7 +103,7 @@ void app_main() {
   i2cdev_init();
 
   // Init GPS
-  init_GPS(UART_PORT);
+  init_GPS(UART_NUM_2);
 
   // Creamos las tareas
   BaseType_t rslt;

@@ -6,6 +6,7 @@
  */
 
 #include <string.h>
+
 #include "protocol_examples_common.h"
 #include "sdkconfig.h"
 #include "esp_event.h"
@@ -20,17 +21,21 @@
 #include "esp_log.h"
 #include "esp_netif.h"
 #include "driver/gpio.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
+
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
-#define SSID "POCO_F1"
-#define PASSWORD "9ccd57df57e5"
+#include "config.h"
 
-#define CONFIG_EXAMPLE_CONNECT_WIFI 1
-#define CONFIG_EXAMPLE_WIFI_AUTH_WPA2_PSK 1
+#define SSID CONFIG_WIFI_SSID
+#define PASSWORD CONFIG_WIFI_PASS
+
+#define CONFIG_EXAMPLE_CONNECT_WIFI CONFIG_ENABLE_WIFI
+#define CONFIG_EXAMPLE_WIFI_AUTH_WPA2_PSK CONFIG_WIFI_AUTH_WPA2_PSK
 #define CONFIG_EXAMPLE_WIFI_SCAN_METHOD_ALL_CHANNEL 1
 #define CONFIG_EXAMPLE_WIFI_CONNECT_AP_BY_SECURITY 1
 
