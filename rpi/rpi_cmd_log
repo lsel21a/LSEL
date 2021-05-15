@@ -103,30 +103,6 @@ sudo dpkg -i grafana_7.5.6_armhf.deb
 
 sudo /bin/systemctl enable --now grafana-server
 
-
-## VV Esto no VV
-## Puente MQTT - DB
-sudo apt install telegraf
-sudo systemctl enable --now telegraf
-
-# https://github.com/influxdata/telegraf/blob/release-1.8/plugins/inputs/mqtt_consumer/README.md
-sudo cp /etc/mosquitto/ca_certificates/ca.crt /etc/telegraf/ca.crt
-sudo nano /etc/telegraf/telegraf.conf
-[append]
- >> [[inputs.mqtt_consumer]]
- >>   servers = ["tcp://localhost:8883"]
- >>   qos = 0
- >>   connection_timeout = "30s"
- >> 
- >>   topics = [
- >>     "test"
- >>   ]
- >> 
- >>   persistent_session = false
- >>   client_id = ""
-
- >>   tls_ca = "/etc/telegraf/ca.crt"
- >>   insecure_skip_verify = true
- >>   data_format = "influx"
-
-# https://github.com/influxdata/telegraf/blob/release-1.8/plugins/outputs/influxdb/README.md
+## Dron delivery
+sudo apt install python3-pip
+sudo pip3 install dronekit cherrypy jinja2 dronekit_sitl

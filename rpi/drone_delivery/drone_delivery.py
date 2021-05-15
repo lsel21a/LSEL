@@ -8,45 +8,15 @@ Full documentation is provided at http://python.dronekit.io/examples/drone_deliv
 from __future__ import print_function
 import os
 import simplejson
+import argparse
 import time
 
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative
 import cherrypy  ## Interesante a implementar pero no lo usamos en este
 from jinja2 import Environment, FileSystemLoader
 
-# Set up option parsing to get connection string
-import argparse
-parser = argparse.ArgumentParser(description='Creates a CherryPy based web application that displays a mapbox map to let you view the current vehicle position and send the vehicle commands to fly to a particular latitude and longitude. Will start and connect to SITL if no connection string specified.')
-parser.add_argument('--connect',
-                    help="vehicle connection target string. If not specified, SITL is automatically started and used.")
-args = parser.parse_args()
-
-connection_string = args.connect
-
-# Start SITL if no connection string specified
-if not connection_string:
-    import dronekit_sitl
-    sitl = dronekit_sitl.start_default()
-    connection_string = sitl.connection_string()
-
-local_path = os.path.dirname(os.path.abspath(__file__))
-print("local path: %s" % local_path)
-
-
-cherrypy_conf = {
-    '/': {
-        'tools.sessions.on': True,
-        'tools.staticdir.root': local_path
-    },
-    '/static': {
-        'tools.staticdir.on': True,
-        'tools.staticdir.dir': './html/assets'
-    }
-}
-
-
 class Drone(object):
-    def __init__(self, server_enabled=True):
+    def __init__(self, vehicle, server_enabled=True):
         self.gps_lock = False
         self.altitude = 30.0
 
@@ -208,17 +178,48 @@ class DroneDelivery(object):
 
         return self.templates.track(self.drone.get_location())
 
+def start_fly():
+    # Set up option parsing to get connection string
+    parser = argparse.ArgumentParser(description='Creates a CherryPy based web application that displays a mapbox map to let you view the current vehicle position and send the vehicle commands to fly to a particular latitude and longitude. Will start and connect to SITL if no connection string specified.')
+    parser.add_argument('--connect',
+                        help="vehicle connection target string. If not specified, SITL is automatically started and used.")
+    args = parser.parse_args()
 
-# Connect to the Vehicle
-print('Connecting to vehicle on: %s' % connection_string)
-vehicle = connect(connection_string, wait_ready=True)
+    connection_string = args.connect
 
-print('Launching Drone...')
-Drone().launch()
+    # Start SITL if no connection string specified
+    if not connection_string:
+        import dronekit_sitl
+        sitl = dronekit_sitl.start_default()
+        connection_string = sitl.connection_string()
 
-print('Waiting for cherrypy engine...')
-cherrypy.engine.block()
+    local_path = os.path.dirname(os.path.abspath(__file__))
+    print("local path: %s" % local_path)
 
-if not args.connect:
-    # Shut down simulator if it was started.
-    sitl.stop()
+    cherrypy_conf = {
+        '/': {
+            'tools.sessions.on': True,
+            'tools.staticdir.root': local_path
+        },
+        '/static': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': './html/assets'
+        }
+    }
+
+    # Connect to the Vehicle
+    print('Connecting to vehicle on: %s' % connection_string)
+    vehicle = connect(connection_string, wait_ready=True)
+
+    print('Launching Drone...')
+    Drone(vehicle).launch()
+
+    print('Waiting for cherrypy engine...')
+    cherrypy.engine.block()
+
+    if not args.connect:
+        # Shut down simulator if it was started.
+        sitl.stop()
+
+if __name__ == '__main__':
+    start_fly()
