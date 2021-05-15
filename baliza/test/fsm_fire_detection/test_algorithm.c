@@ -6,13 +6,15 @@
 
 #include "fsm_fire_detection/algorithm/algoritmo.h"
 
+#include "config.h"
 
-#define TEMP_SEC  ALGO_TMAX - 1
-#define TEMP_NSEC ALGO_TMAX + 1
-#define HUM_SEC   ALGO_HMIN + 1
-#define HUM_NSEC  ALGO_HMIN - 1
-#define GAS_SEC   ALGO_GMAX - 1
-#define GAS_NSEC  ALGO_GMAX + 1
+
+#define TEMP_SEC  CONFIG_ALGO_TMAX - 1
+#define TEMP_NSEC CONFIG_ALGO_TMAX + 1
+#define HUM_SEC   CONFIG_ALGO_HMIN + 1
+#define HUM_NSEC  CONFIG_ALGO_HMIN - 1
+#define GAS_SEC   CONFIG_ALGO_GMAX - 1
+#define GAS_NSEC  CONFIG_ALGO_GMAX + 1
 
 #define SET_ALL(a, b, n) for(int i = 0; i < n; i++) { a[i] = b; }
 
