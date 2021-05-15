@@ -2,6 +2,7 @@
 #include "fsm_fire_detection/fsm_deteccion_incendio.h"
 #include "fsm_timer/fsm_timer.h"
 #include "fsm_emergency/fsm_emergencia.h"
+#include "fsm_emergency/gps/drivers_gps.h"
 #include "esp_log.h"
 #include "mqtt_client.h"
 #include "esp_wifi.h"
@@ -15,6 +16,7 @@
 #define XTASK_DELAY 10*portTICK_PERIOD_MS
 #define TAREA_SEPARADAS
 #define MQTT_URL "mqtt://home.ddns.mrrb.eu:1883"
+#define UART_PORT UART_NUM_2
 
 esp_mqtt_client_handle_t client;
 float *temperatura, *humedad, *gases;
@@ -115,7 +117,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 #endif /* DEBUG_PRINT_ENABLE */
     }
     break;
-  /* case MQTT_EVENT_ERROR:
+  /* case MQTT_EVENT_ERROR: 
     ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
     if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT)
     {
@@ -237,8 +239,12 @@ void app_main()
 
 
   mqtt_app_start();  
+  
   // Init I2C
   i2cdev_init();
+
+  // Init GPS
+  init_GPS(UART_PORT);
 
   // Creamos las colas
   datoValidoQueue = xQueueCreate(1, sizeof(bool));

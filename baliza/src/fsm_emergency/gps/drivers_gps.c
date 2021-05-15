@@ -51,6 +51,9 @@ void read_GPS(float *longitud, float *latitud) {
     // Se lee el GPS hasta que se recibe GPGLL(Posición)
     do{
         line = readLine(uart_num);
+#ifdef DEBUG_PRINT_ENABLE
+        printf("Se lee una línea de la trama de GPS recibida.\n");
+#endif
     }
     while(minmea_sentence_id(line, false) != MINMEA_SENTENCE_GLL);
 
@@ -58,8 +61,13 @@ void read_GPS(float *longitud, float *latitud) {
     if (minmea_parse_gll(&frame, line)) {
         *latitud = minmea_tocoord(&frame.latitude);
         *longitud = minmea_tocoord(&frame.longitude);
+#ifdef DEBUG_PRINT_ENABLE
+        printf("Se obtiene la posición de la baliza.\n");
+#endif
     }
     else{
+#ifdef DEBUG_PRINT_ENABLE
         printf("Fallo decodificación trama GPS.\n");
+#endif
     }
 }

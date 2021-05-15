@@ -23,6 +23,6 @@ int algoritmo_incendio(float* Temperatura, float* Humedad, float* Gases, size_t 
   if (posible_incendio1 >= n_items || posible_incendio2 >= n_items || posible_incendio3 >= n_items) {
     return 1;
   } else { 
-    return 1;
+    return 0;
   }
 }

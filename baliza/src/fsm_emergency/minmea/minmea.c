@@ -646,5 +646,3 @@ int minmea_gettime(struct timespec *ts, const struct minmea_date *date, const st
     */
    return 0;
 }
-
-/* vim: set ts=4 sw=4 et: */

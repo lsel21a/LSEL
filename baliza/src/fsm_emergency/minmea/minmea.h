@@ -257,5 +257,3 @@ static inline float minmea_tocoord(struct minmea_float *f)
 #endif
 
 #endif /* MINMEA_H */
-
-/* vim: set ts=4 sw=4 et: */
