@@ -13,8 +13,8 @@ static fsm_trans_t sensores_tt[] = {
 void fsm_init_sensores(fsm_sensores_t *this, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *tickQueue){
 
     fsm_init((fsm_t *)this, sensores_tt);
-    this->datosSensoresQueue = datoValidoQueue;
-    this->datoValidoQueue = datosSensoresQueue;
+    this->datosSensoresQueue = datosSensoresQueue;
+    this->datoValidoQueue = datoValidoQueue;
     this->tickQueue = tickQueue;
 #ifdef DEBUG_PRINT_ENABLE
     printf("FSM sensores inicializada.\n");

@@ -17,5 +17,6 @@ void SendDatos (fsm_t *this);
 void EnvioSenalEmergencia (fsm_t *this);
 void BackToIdle (fsm_t *this);
 void NoSenalEmergencia (fsm_t *this);
+void SendDatosYEmergencia (fsm_t* this);
 
 #endif

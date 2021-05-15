@@ -15,16 +15,14 @@ static fsm_trans_t DeteccionIncendio[] = {
 };
 
 
-void  fsm_deteccion_incendio_init ( fsm_deteccion_incendio_t *this, float *temperatura, float *humedad, float *gases, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *incendioQueue, QueueHandle_t *muestreoRapidoQueue)
+void  fsm_deteccion_incendio_init ( fsm_deteccion_incendio_t *this, QueueHandle_t *datoValidoQueue, QueueHandle_t *datosSensoresQueue, QueueHandle_t *incendioQueue, QueueHandle_t *muestreoRapidoQueue, QueueHandle_t* datosMQTTQueue)
 {
   fsm_init((fsm_t*)this , DeteccionIncendio);
-  this->temperatura = temperatura;
-  this->humedad = humedad;
-  this->gases = gases;
   this->datoValidoQueue = datoValidoQueue;
   this->datosSensoresQueue = datosSensoresQueue;
   this->incendioQueue = incendioQueue;
   this->muestreoRapidoQueue = muestreoRapidoQueue;
+  this->datosMQTTQueue = datosMQTTQueue;
 #ifdef DEBUG_PRINT_ENABLE
   printf("FSM detección de incendio inicializada.\n");
 #endif /* DEBUG_PRINT_ENABLE */

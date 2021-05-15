@@ -2,6 +2,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include "string.h"
 
 static bool deadline = false;
 // static bool valores_sensores = false;
@@ -42,7 +43,7 @@ void Activa_Sensores(fsm_t *this){
 
     int i;
     for (i=0; i<NUM_SENSORS; i++){
-        if(sensors_init(&devices[i]) != SENSORS_OK)
+        if(sensors_init(&(devices[i])) != SENSORS_OK)
         {
 #ifdef DEBUG_PRINT_ENABLE
             printf("Error en activación sensor %d.\n", i);
@@ -73,14 +74,14 @@ void Lectura_Sensores(fsm_t *this){
 
     int i;
     for(i=0; i<NUM_SENSORS; i++){
-        if(get_data(&devices[i]) != SENSORS_OK)
+        if(get_data(&(devices[i])) != SENSORS_OK)
         {
 #ifdef DEBUG_PRINT_ENABLE
             printf("Error en lectura sensor %d.\n", i);
 #endif /* DEBUG_PRINT_ENABLE */
         }
 #ifdef DEBUG_PRINT_ENABLE
-        printf("Se ha leído %d ºC en el sensor %d.\n", (int)devices[i].data.temperature, i);
+        printf("Se ha leído %d ºC en el sensor %d.\n", (int) devices[i].data.temperature, i);
 #endif /* DEBUG_PRINT_ENABLE */
     }
 
@@ -97,7 +98,7 @@ int LecturaFinalizadaOK(fsm_t *this){
     {
         bool DatoValido = true;
         // Send a bool (datoValido) to fsm_deteccion_incendio. 
-        if( xQueueGenericSend( *(fp->datoValidoQueue), ( void * ) &DatoValido, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
+        if( xQueueSend( *(fp->datoValidoQueue), ( void * ) &DatoValido, ( TickType_t ) 0) != pdPASS  )
         {
 #ifdef DEBUG_PRINT_ENABLE
             printf("Error en el envio del dato válido.\n");
@@ -130,7 +131,12 @@ void Send_Data(fsm_t *this){
 
     int i;
     for (i=0;i<NUM_SENSORS;i++){
-        txDataSensor[i] = devices[i].data;
+        memcpy(&(txDataSensor[i]), &(devices[i].data), sizeof(sensors_data_t));
+#ifdef DEBUG_PRINT_ENABLE
+    printf("Se envia %f ºC.\n", txDataSensor[i].temperature);
+    printf("Se envia %f hPa.\n", txDataSensor[i].humidity);
+    printf("Se envia %f Ohms de gas.\n", txDataSensor[i].gas_resistance);
+#endif
     }
     xQueueSend( *(fp->datosSensoresQueue), ( void * ) txDataSensor, ( TickType_t ) 0);
     
@@ -150,7 +156,7 @@ void Apagar_Sensores(fsm_t *this){
 
     int i;
     for(i=0; i<NUM_SENSORS; i++){
-        if(sleep_data(&devices[i]) != SENSORS_OK)
+        if(sleep_data(&(devices[i])) != SENSORS_OK)
         {
 #ifdef DEBUG_PRINT_ENABLE
             printf("Error en disactivación sensor %d.\n", i);

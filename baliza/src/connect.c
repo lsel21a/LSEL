@@ -26,6 +26,9 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
+#define SSID "POCO_F1"
+#define PASSWORD "9ccd57df57e5"
+
 #define CONFIG_EXAMPLE_CONNECT_WIFI 1
 #define CONFIG_EXAMPLE_WIFI_AUTH_WPA2_PSK 1
 #define CONFIG_EXAMPLE_WIFI_SCAN_METHOD_ALL_CHANNEL 1
@@ -298,8 +301,8 @@ static esp_netif_t *wifi_start(void)
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
     wifi_config_t wifi_config = {
         .sta = {
-            .ssid = "AP_BALIZA",
-            .password = "1234567890",
+            .ssid = SSID,
+            .password = PASSWORD,
             .scan_method = EXAMPLE_WIFI_SCAN_METHOD,
             .sort_method = EXAMPLE_WIFI_CONNECT_AP_SORT_METHOD,
             .threshold.rssi = 0,
