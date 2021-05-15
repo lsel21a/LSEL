@@ -9,14 +9,13 @@
 
 
 #define XTASK_DELAY 10*portTICK_PERIOD_MS
-#define TAREA_SEPARADAS
 #define UART_PORT UART_NUM_2
 
 esp_mqtt_client_handle_t *client;
 float *temperatura, *humedad, *gases;
 QueueHandle_t datoValidoQueue, datosSensoresQueue, tickQueue, incendioQueue, muestreoRapidoQueue, solicitudDatosQueue, datosMQTTQueue;
 
-#ifdef TAREA_SEPARADAS
+
 static void fsm_sensor_task(void *arg)
 {
   fsm_sensores_t f;
@@ -80,7 +79,6 @@ static void fsm_emergencia_task(void *arg)
   }
   return;
 }
-#endif
 
 void app_main() {
 
@@ -109,7 +107,6 @@ void app_main() {
   // Init GPS
   init_GPS(UART_PORT);
 
-#ifdef TAREA_SEPARADAS
   // Creamos las tareas
   BaseType_t rslt;
   
@@ -128,33 +125,4 @@ void app_main() {
   rslt = xTaskCreate(fsm_emergencia_task, "fsm_emergencia_task", 4096, NULL, 1, NULL);
   if(rslt == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY )
     printf("Error in allocating memory!\n");
-
-#else
-  fsm_deteccion_incendio_t f_inc;
-  fsm_deteccion_incendio_init (&f, &datoValidoQueue, &datosSensoresQueue, &incendioQueue, &muestreoRapidoQueue, &datosMQTTQueue);
-
-  fsm_sensores_t f_sen;
-  fsm_init_sensores(&f, &datoValidoQueue, &datosSensoresQueue, &tickQueue);
-
-  fsm_timer_t f_timer;
-  fsm_timer_init (&f, &muestreoRapidoQueue, &tickQueue);
-
-  fsm_emergencia_t f_emer;
-  fsm_emergencia_init (&f, &incendioQueue, &solicitudDatosQueue, &datosMQTTQueue, client);
-  
-
-  while(1){
-    printf("Disparo de la FSM de timer.\n");
-    fsm_fire ((fsm_t*)(&f_timer));
-
-    printf("Disparo de la FSM de sensores.\n");
-    fsm_fire ((fsm_t*)(&f_sen));
-
-    printf("Disparo de la FSM de detección de incendio.\n");
-    fsm_fire ((fsm_t*)(&f_inc));
-
-    printf("Disparo de la FSM de emergencia.\n");
-    fsm_fire ((fsm_t*)(&f_emer));
- }
-#endif
 }
