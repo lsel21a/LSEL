@@ -212,7 +212,9 @@ esp_err_t example_connect(void)
 #endif
     start();
     ESP_ERROR_CHECK(esp_register_shutdown_handler(&stop));
+#ifdef DEBUG_PRINT_ENABLE
     ESP_LOGI(TAG, "Waiting for IP(s)");
+#endif
     for (int i = 0; i < NR_OF_IP_ADDRESSES_TO_WAIT_FOR; ++i) {
         xSemaphoreTake(s_semph_get_ip_addrs, portMAX_DELAY);
     }
@@ -222,16 +224,21 @@ esp_err_t example_connect(void)
     for (int i = 0; i < esp_netif_get_nr_of_ifs(); ++i) {
         netif = esp_netif_next(netif);
         if (is_our_netif(TAG, netif)) {
+#ifdef DEBUG_PRINT_ENABLE
             ESP_LOGI(TAG, "Connected to %s", esp_netif_get_desc(netif));
+#endif
             ESP_ERROR_CHECK(esp_netif_get_ip_info(netif, &ip));
-
+#ifdef DEBUG_PRINT_ENABLE
             ESP_LOGI(TAG, "- IPv4 address: " IPSTR, IP2STR(&ip.ip));
+#endif
 #ifdef CONFIG_EXAMPLE_CONNECT_IPV6
             esp_ip6_addr_t ip6[MAX_IP6_ADDRS_PER_NETIF];
             int ip6_addrs = esp_netif_get_all_ip6(netif, ip6);
             for (int j = 0; j < ip6_addrs; ++j) {
                 esp_ip6_addr_type_t ipv6_type = esp_netif_ip6_get_addr_type(&(ip6[j]));
+#ifdef DEBUG_PRINT_ENABLE
                 ESP_LOGI(TAG, "- IPv6 address: " IPV6STR ", type: %s", IPV62STR(ip6[j]), s_ipv6_addr_types[ipv6_type]);
+#endif
             }
 #endif
 
@@ -257,7 +264,9 @@ esp_err_t example_disconnect(void)
 static void on_wifi_disconnect(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
 {
+#ifdef DEBUG_PRINT_ENABLE
     ESP_LOGI(TAG, "Wi-Fi disconnected, trying to reconnect...");
+#endif
     esp_err_t err = esp_wifi_connect();
     if (err == ESP_ERR_WIFI_NOT_STARTED) {
         return;
@@ -309,7 +318,9 @@ static esp_netif_t *wifi_start(void)
             .threshold.authmode = EXAMPLE_WIFI_SCAN_AUTH_MODE_THRESHOLD,
         },
     };
+#ifdef DEBUG_PRINT_ENABLE
     ESP_LOGI(TAG, "Connecting to %s...", wifi_config.sta.ssid);
+#endif
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
@@ -348,7 +359,9 @@ static void on_eth_event(void *esp_netif, esp_event_base_t event_base,
 {
     switch (event_id) {
     case ETHERNET_EVENT_CONNECTED:
+#ifdef DEBUG_PRINT_ENABLE
         ESP_LOGI(TAG, "Ethernet Link Up");
+#endif
         esp_netif_create_ip6_linklocal(esp_netif);
         break;
     default:
