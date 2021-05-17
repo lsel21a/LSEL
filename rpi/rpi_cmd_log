@@ -105,4 +105,4 @@ sudo /bin/systemctl enable --now grafana-server
 
 ## Dron delivery
 sudo apt install python3-pip
-sudo pip3 install dronekit cherrypy jinja2 dronekit_sitl
+sudo pip3 install dronekit cherrypy jinja2 dronekit_sitl simplejson
