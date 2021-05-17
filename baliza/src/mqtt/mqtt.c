@@ -1,3 +1,5 @@
+#include <stddef.h>
+#include <stdio.h>
 #include "esp_log.h"
 #include "mqtt_client.h"
 #include "esp_wifi.h"
@@ -12,10 +14,10 @@
 
 static const char *TAG = "MQTT_EXAMPLE";
 static esp_mqtt_client_handle_t client_st;
-QueueHandle_t *solicitudDatosQueue;
+static QueueHandle_t* p_solicitudDatosQueue = NULL;
 
 void init_mqtt(QueueHandle_t *solicitudDatosQ){
-    solicitudDatosQueue = solicitudDatosQ;
+    p_solicitudDatosQueue = solicitudDatosQ;
 }
 
 void connect_WIFI(){
@@ -38,10 +40,6 @@ void connect_WIFI(){
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-        * Read "Establishing Wi-Fi or Ethernet Connection" section in
-        * examples/protocols/README.md for more information about this function.
-        */
     ESP_ERROR_CHECK(example_connect());
 
 }
@@ -53,16 +51,6 @@ static void log_error_if_nonzero(const char *message, int error_code)
     }
 }
 
-/*
- * @brief Event handler registered to receive MQTT events
- *
- *  This function is called by the MQTT client event loop.
- *
- * @param handler_args user data registered to the event.
- * @param base Event base for the handler(always MQTT Base in this example).
- * @param event_id The id for the received event.
- * @param event_data The data for the event, esp_mqtt_event_handle_t.
- */
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
   ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
@@ -101,25 +89,27 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 #ifdef DEBUG_PRINT_ENABLE
     ESP_LOGI(TAG, "MQTT_EVENT_DATA");
 #endif
-    if (solicitudDatosQueue != 0)
+    if (p_solicitudDatosQueue != NULL)
     {
 #ifdef DEBUG_PRINT_ENABLE
-      printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-      printf("DATA=%.*s\r\n", event->data_len, event->data);
+      printf("TOPIC=%.*s\n", event->topic_len, event->topic);
+      printf("DATA=%.*s\n", event->data_len, event->data);
 #endif /*DEBUG_PRINT_ENABLE*/
-      char to_compare[15];
-      memcpy(to_compare, event->topic, event->topic_len);
-      to_compare[14] = '\0';
+      char to_compare[256];
+      sprintf(to_compare, "%.*s", event->topic_len, event->topic);
+      // memcpy(to_compare, event->topic, event->topic_len);
+      // to_compare[event->topic_len + 1] = '\0';
+      printf(">> %d -- %s -- %s\n", strcmp(to_compare, CONFIG_MQTT_TOPIC_SOLICITUD), to_compare, CONFIG_MQTT_TOPIC_SOLICITUD);
 
       if (strcmp(to_compare, CONFIG_MQTT_TOPIC_SOLICITUD) == 0)
       {
-        char to_compare2[5];
-        memcpy(to_compare2, event->data, event->data_len);
-        to_compare[4] = '\0';
+        sprintf(to_compare, "%.*s", event->data_len, event->data);
+        // memcpy(to_compare, event->data, event->data_len);
+        // to_compare[event->data_len + 1] = '\0';
 
         bool txSolicitudDatos = false;
 
-        if (strcmp(to_compare2, "true") == 0)
+        if (strcmp(to_compare, "true") == 0)
         {
           txSolicitudDatos = true;
         }
@@ -128,7 +118,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 #endif /* DEBUG_PRINT_ENABLE */
 
         // Send solicitudDatos MQTT data to fsm_emergencia.
-        if (xQueueGenericSend(*solicitudDatosQueue, (void *)&txSolicitudDatos, (TickType_t)0, queueSEND_TO_BACK) != pdPASS)
+        if (xQueueSend(*p_solicitudDatosQueue, (void *)&txSolicitudDatos, (TickType_t)0) != pdTRUE)
         {
           // Failed to post the message.
 #ifdef DEBUG_PRINT_ENABLE
@@ -174,7 +164,6 @@ void mqtt_app_start(esp_mqtt_client_handle_t **client)
         .uri = CONFIG_MQTT_URL,
     };
 
-
     // Inicialización del cliente
     client_st = esp_mqtt_client_init(&mqtt_cfg);
     *client = &(client_st);
@@ -182,5 +171,4 @@ void mqtt_app_start(esp_mqtt_client_handle_t **client)
     /* The last argument may be used to pass data to the event handler, in this example mqtt_event_handler */
     esp_mqtt_client_register_event(client_st, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(client_st);
-
 }
