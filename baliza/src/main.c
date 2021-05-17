@@ -10,7 +10,6 @@
 #include "config.h"
 
 esp_mqtt_client_handle_t *client;
-float *temperatura, *humedad, *gases;
 QueueHandle_t datoValidoQueue, datosSensoresQueue, tickQueue, incendioQueue, muestreoRapidoQueue, solicitudDatosQueue, datosMQTTQueue;
 
 
