@@ -30,6 +30,8 @@ void test_fsm_timer_fsmInitFillsStructWithSomething(){
 
     fsm_timer_init(&f, &q1, &q2);
     TEST_ASSERT(memcmp(&zero, &f, sizeof(fsm_timer_t)) != 0);
+    TEST_ASSERT_EQUAL(f.muestreoRapidoQueue, &(q1));
+    TEST_ASSERT_EQUAL(f.tickQueue, &(q2));
 }
 
 void test_fsm_fsmInitCheckInitialState(){

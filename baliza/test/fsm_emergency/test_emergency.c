@@ -31,6 +31,10 @@ void test_fsm_timer_fsmInitFillsStructWithSomething(){
     
     fsm_emergencia_init(&f, &incendioQueue, &solicitudDatosQueue, &datosMQTTQueue, &client);
     TEST_ASSERT(memcmp(&zero, &f, sizeof(fsm_emergencia_t)) != 0);
+    TEST_ASSERT_EQUAL(f.incendioQueue, &(incendioQueue));
+    TEST_ASSERT_EQUAL(f.solicitudDatosQueue, &(solicitudDatosQueue));
+    TEST_ASSERT_EQUAL(f.datosMQTTQueue, &(datosMQTTQueue));
+    TEST_ASSERT_EQUAL(f.client, &(client));
 }
 
 void test_fsm_fsmInitCheckInitialState(){

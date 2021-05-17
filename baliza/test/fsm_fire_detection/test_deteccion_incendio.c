@@ -30,6 +30,11 @@ test_fsm_fsmInitFillsStructWithSomething(){
 
     fsm_deteccion_incendio_init(&fsm, &datovalidoqueue, &datossensoresqueue, &incendioqueue, &muestreorapidoqueue, &datosMQTTQueue);
     TEST_ASSERT(memcmp(&zero, &fsm, sizeof(fsm_deteccion_incendio_t)) != 0);
+    TEST_ASSERT_EQUAL(fsm.datoValidoQueue, &(datovalidoqueue));
+    TEST_ASSERT_EQUAL(fsm.datosSensoresQueue, &(datossensoresqueue));
+    TEST_ASSERT_EQUAL(fsm.incendioQueue, &(incendioqueue));
+    TEST_ASSERT_EQUAL(fsm.muestreoRapidoQueue, &(muestreorapidoqueue));
+    TEST_ASSERT_EQUAL(fsm.datosMQTTQueue, &(datosMQTTQueue));
 }
 
 void

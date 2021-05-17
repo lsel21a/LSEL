@@ -30,6 +30,9 @@ void test_fsm_sensores_fsmInitFillsStructWithSomething(){
 
     fsm_init_sensores(&f, &q1, &q2, &q3);
     TEST_ASSERT(memcmp(&zero, &f, sizeof(fsm_sensores_t)) != 0);
+    TEST_ASSERT_EQUAL(f.datoValidoQueue, &(q1));
+    TEST_ASSERT_EQUAL(f.datosSensoresQueue, &(q2));
+    TEST_ASSERT_EQUAL(f.tickQueue, &(q3));
 }
 
 void test_fsm_fsmInitCheckInitialState(){
