@@ -54,7 +54,7 @@ int NoHayPeligro (fsm_t * this)
   resultado = !(algoritmo_incendio(fp->temperatura, fp->humedad, fp->gases, CONFIG_SENSOR_NUM)); 
   
 #ifdef DEBUG_PRINT_ENABLE
-  printf("Algoritmo ha devuelto %d \n", resultado);
+  printf("Algoritmo ha devuelto %d \n", !resultado);
 #endif /* DEBUG_PRINT_ENABLE */
   
   return resultado;
@@ -96,7 +96,7 @@ int Incendio_to_Idle (fsm_t* this)
   resultado = !(algoritmo_incendio( fp->temperatura, fp->humedad, fp->gases, CONFIG_SENSOR_NUM)); 
   
 #ifdef DEBUG_PRINT_ENABLE
-  printf("Algoritmo ha devuelto %d \n", resultado);
+  printf("Algoritmo ha devuelto %d \n", !resultado);
 #endif /* DEBUG_PRINT_ENABLE */
   
   return resultado;
