@@ -149,7 +149,7 @@ void SendDatos (fsm_t* this)
     float longitud, latitud;
     read_GPS( &longitud, &latitud);
 
-    sprintf(to_send, "%f; %f \n", longitud, latitud );
+    sprintf(to_send, "%f;%f", longitud, latitud );
     sprintf(topic, "%s/%d/%s", CONFIG_MQTT_TOPIC_PREFIX, CONFIG_BALIZA_ID, CONFIG_MQTT_TOPIC_GPS);
 #ifdef DEBUG_PRINT_ENABLE
     printf("%s\n", to_send);
@@ -176,7 +176,7 @@ void EnvioSenalEmergencia (fsm_t* this)
     float longitud, latitud;
     read_GPS( &longitud, &latitud);
 
-    sprintf(to_send, "%f; %f \n", longitud, latitud );
+    sprintf(to_send, "%f;%f", longitud, latitud );
     sprintf(topic, "%s/%d/%s", CONFIG_MQTT_TOPIC_PREFIX, CONFIG_BALIZA_ID, CONFIG_MQTT_TOPIC_GPS);
 #ifdef DEBUG_PRINT_ENABLE
     printf("%s\n", to_send);
