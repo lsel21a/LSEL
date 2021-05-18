@@ -1,7 +1,12 @@
+#include "esp_log.h"
+
 #include "drivers_gps.h"
 #include "config.h"
 
 uart_port_t uart_num;
+
+static const char* TAG = "drivers_gps";
+
 
 void init_GPS(uart_port_t uart){
 	uart_num = uart;
@@ -44,31 +49,22 @@ char *readLine(uart_port_t uart) {
 	}
 }
 
-
 void read_GPS(float *longitud, float *latitud) {
     char *line;
     struct minmea_sentence_gll frame;
 
     // Se lee el GPS hasta que se recibe GPGLL(Posición)
-    do{
+    do {
         line = readLine(uart_num);
-#ifdef DEBUG_PRINT_ENABLE
-        printf("Se lee una línea de la trama de GPS recibida.\n");
-#endif
-    }
-    while(minmea_sentence_id(line, false) != MINMEA_SENTENCE_GLL);
+        ESP_LOGD(TAG, "[read_GPS] Se lee una línea de la trama de GPS recibida.");
+    } while(minmea_sentence_id(line, false) != MINMEA_SENTENCE_GLL);
 
     // Se decodifica la trama recibida
     if (minmea_parse_gll(&frame, line)) {
         *latitud = minmea_tocoord(&frame.latitude);
         *longitud = minmea_tocoord(&frame.longitude);
-#ifdef DEBUG_PRINT_ENABLE
-        printf("Se obtiene la posición de la baliza.\n");
-#endif
-    }
-    else{
-#ifdef DEBUG_PRINT_ENABLE
-        printf("Fallo decodificación trama GPS.\n");
-#endif
+        ESP_LOGD(TAG, "[read_GPS] Se obtiene la posición de la baliza.");
+    } else{
+        ESP_LOGW(TAG, "[read_GPS] Fallo decodificación trama GPS.");
     }
 }

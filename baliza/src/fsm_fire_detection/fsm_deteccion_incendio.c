@@ -1,5 +1,10 @@
+#include "esp_log.h"
+
 #include "fsm_deteccion_incendio.h"
 #include "drivers_fsm_deteccion_incendio.h"
+
+static const char* TAG = "fsm_deteccion_incendio";
+
 
 // Explicit FSM description
 static fsm_trans_t DeteccionIncendio[] = {
@@ -23,7 +28,5 @@ void  fsm_deteccion_incendio_init ( fsm_deteccion_incendio_t *this, QueueHandle_
   this->incendioQueue = incendioQueue;
   this->muestreoRapidoQueue = muestreoRapidoQueue;
   this->datosMQTTQueue = datosMQTTQueue;
-#ifdef DEBUG_PRINT_ENABLE
-  printf("FSM detección de incendio inicializada.\n");
-#endif /* DEBUG_PRINT_ENABLE */
+  ESP_LOGD(TAG, "[fsm_deteccion_incendio_init] FSM detección de incendio inicializada.");
 }

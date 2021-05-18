@@ -1,5 +1,7 @@
 #include <stdbool.h>
 
+#include "esp_log.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -7,6 +9,8 @@
 #include "fsm_timer.h"
 
 #include "config.h"
+
+static const char* TAG = "drivers_timer";
 
 
 int ReceiveMuestreoRapido (fsm_t* this) 
@@ -17,14 +21,13 @@ int ReceiveMuestreoRapido (fsm_t* this)
     if( *(fp->muestreoRapidoQueue) != 0 )
     {
         // Receive a message on the created queue. 
-        xQueueReceive( *(fp->muestreoRapidoQueue), (void *) &rxMuestreoRapido, ( TickType_t ) 0);   
-#ifdef DEBUG_PRINT_ENABLE
-        printf("Muestreo rapido recibido = %d.\n", rxMuestreoRapido);
-#endif /* DEBUG_PRINT_ENABLE */
+        if (xQueueReceive( *(fp->muestreoRapidoQueue), (void *) &rxMuestreoRapido, ( TickType_t ) 0) == pdTRUE) {
+            ESP_LOGD(TAG, "[ReceiveMuestreoRapido] Se ha recibido %d en la cola de muestreoRapido.", rxMuestreoRapido);
+        } else {
+            ESP_LOGD(TAG, "[ReceiveMuestreoRapido] Cola de muestreoRapido vacia.");
+        }
     } else {
-#ifdef DEBUG_PRINT_ENABLE
-        printf("Error en abrir cola receive muestreo rapido.\n");
-#endif /* DEBUG_PRINT_ENABLE */
+        ESP_LOGW(TAG, "[ReceiveMuestreoRapido] Error al abrir cola de muestreoRapido.");
     }
     return rxMuestreoRapido;
 }
@@ -35,9 +38,8 @@ int WaitNormal (fsm_t* this)
 
     xDelay = (CONFIG_TIMER_MEASURE_NORMAL * 1000) / portTICK_PERIOD_MS;
     vTaskDelay( xDelay );
-#ifdef DEBUG_PRINT_ENABLE
-    printf("Fin de espera Tick normal.\n");
-#endif /* DEBUG_PRINT_ENABLE */
+
+    ESP_LOGD(TAG, "[WaitNormal] Fin de espera Tick normal.");
     return 1;
 }
 
@@ -51,14 +53,13 @@ int ReceiveMuestreoNormal (fsm_t* this)
     {
         // Receive a message on the created queue.  If a
         // message is not immediately available we use the default sampling period.
-        xQueueReceive( *(fp->muestreoRapidoQueue), (void *) &rxMuestreoRapido, ( TickType_t ) 0);   
-#ifdef DEBUG_PRINT_ENABLE
-        printf("Muestreo rapido recibido = %d.\n", rxMuestreoRapido);
-#endif /* DEBUG_PRINT_ENABLE */
+        if (xQueueReceive( *(fp->muestreoRapidoQueue), (void *) &rxMuestreoRapido, ( TickType_t ) 0) == pdTRUE) {
+            ESP_LOGD(TAG, "[ReceiveMuestreoNormal] Se ha recibido %d en la cola de muestreoRapido.", rxMuestreoRapido);
+        } else {
+            ESP_LOGD(TAG, "[ReceiveMuestreoNormal] Cola de muestreoRapido vacia.");
+        }
     } else {
-#ifdef DEBUG_PRINT_ENABLE
-        printf("Error en abrir cola receive muestreo rapido.\n");
-#endif /* DEBUG_PRINT_ENABLE */
+        ESP_LOGW(TAG, "[ReceiveMuestreoNormal] Error al abrir cola de muestreoRapido.");
         return 0;
    }
     return !rxMuestreoRapido;
@@ -70,9 +71,8 @@ int WaitRapido (fsm_t* this)
 
     xDelay = (CONFIG_TIMER_MEASURE_QUICK * 1000) / portTICK_PERIOD_MS;
     vTaskDelay( xDelay );
-#ifdef DEBUG_PRINT_ENABLE
-    printf("Fin de espera Tick rapido.\n");
-#endif /* DEBUG_PRINT_ENABLE */
+
+    ESP_LOGD(TAG, "[WaitRapido] Fin de espera Tick rapido.");
     return 1;
 }
 
@@ -87,16 +87,12 @@ void SendTick (fsm_t* this)
         // Send a bool (tick) to fsm_sensor. 
         if( xQueueGenericSend( *(fp->tickQueue), (void *) &Tick, ( TickType_t ) 0, queueSEND_TO_BACK) != pdPASS  )
         {
-#ifdef DEBUG_PRINT_ENABLE
-            printf("Error en enviar el tick.\n");
-#endif /* DEBUG_PRINT_ENABLE */
+            ESP_LOGW(TAG, "[SendTick] Error al enviar tick.");
             return;
         }
         else
         {
-#ifdef DEBUG_PRINT_ENABLE
-            printf("Tick enviado correctamente.\n");
-#endif /* DEBUG_PRINT_ENABLE */
+            ESP_LOGD(TAG, "[SendTick] Tick enviado correctamente.");
         }
     }
 }

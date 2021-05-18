@@ -1,9 +1,13 @@
+#include "esp_log.h"
+
 #include "fsm_emergencia.h"
 #include "drivers_emergencia.h"
 #include "mqtt_client.h"
 
-// Explicit FSM description
+static const char* TAG = "fsm_emergencia";
 
+
+// Explicit FSM description
 static fsm_trans_t emergencia_tt[] = {
     {IDLE_EMERGENCIA, SenalIncendio , EMERGENCIA, EnvioSenalEmergencia},
     {IDLE_EMERGENCIA, SolicitudDatos , IDLE_EMERGENCIA, SendDatos},
@@ -16,7 +20,6 @@ static fsm_trans_t emergencia_tt[] = {
 
 };
 
-
 void  fsm_emergencia_init ( fsm_emergencia_t * this, QueueHandle_t *incendioQueue, QueueHandle_t *solicitudDatosQueue, QueueHandle_t *datosMQTTQueue, esp_mqtt_client_handle_t *client)
 {
     fsm_init((fsm_t *)this, emergencia_tt);
@@ -24,7 +27,5 @@ void  fsm_emergencia_init ( fsm_emergencia_t * this, QueueHandle_t *incendioQueu
     this->solicitudDatosQueue = solicitudDatosQueue;
     this->datosMQTTQueue = datosMQTTQueue;
     this->client = client;
-#ifdef DEBUG_PRINT_ENABLE
-    printf("FSM emergencia inicializada.\n");
-#endif
+    ESP_LOGD(TAG, "[fsm_emergencia_init] FSM emergencia inicializada.");
 };

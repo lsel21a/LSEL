@@ -1,7 +1,12 @@
 #include <stddef.h>
 
+#include "esp_log.h"
+
 #include "fsm_sensores.h"
 #include "drivers_fsm_sensores.h"
+
+static const char* TAG = "fsm_sensores";
+
 
 static fsm_trans_t sensores_tt[] = {
     {IDLE, checkStart_ON, MEDIDAS, Activa_Sensores},
@@ -17,9 +22,8 @@ void fsm_init_sensores(fsm_sensores_t *this, QueueHandle_t *datoValidoQueue, Que
     this->datosSensoresQueue = datosSensoresQueue;
     this->datoValidoQueue = datoValidoQueue;
     this->tickQueue = tickQueue;
-#ifdef DEBUG_PRINT_ENABLE
-    printf("FSM sensores inicializada.\n");
-#endif /* DEBUG_PRINT_ENABLE */
+
+    ESP_LOGD(TAG, "[fsm_init_sensores] FSM sensores inicializada.");
 }
 
 
