@@ -18,6 +18,7 @@
 #define CONFIG_MQTT_TOPIC_PREFIX "baliza"
 
 #define CONFIG_MQTT_TOPIC_SOLICITUD CONFIG_MQTT_TOPIC_PREFIX"/solicitudDatos"
+#define CONFIG_MQTT_TOPIC_SOLICITUD_MSG "true"
 
 #define CONFIG_MQTT_TOPIC_INCENDIO "incendio"
 #define CONFIG_MQTT_TOPIC_TEMPERATURA "Datos_Baliza/temperatura"
@@ -25,6 +26,8 @@
 #define CONFIG_MQTT_TOPIC_GASES "Datos_Baliza/gases"
 #define CONFIG_MQTT_TOPIC_PRESION "Datos_Baliza/presion"
 #define CONFIG_MQTT_TOPIC_GPS "Datos_Baliza/posicion"
+
+#define CONFIG_MQTT_QOS 2
 
 // FSM emergencia
 #define CONFIG_EMERGENCIA_MODO_SILENCIOSO 0
