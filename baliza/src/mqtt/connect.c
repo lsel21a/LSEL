@@ -7,7 +7,7 @@
 
 #include <string.h>
 
-#include "protocol_examples_common.h"
+#include "connect.h"
 #include "sdkconfig.h"
 #include "esp_event.h"
 #include "esp_wifi.h"
@@ -109,7 +109,7 @@ static const char *s_ipv6_addr_types[] = {
 };
 #endif
 
-static const char *TAG = "example_connect";
+static const char *TAG = "driver_connect";
 
 #if CONFIG_EXAMPLE_CONNECT_WIFI
 static esp_netif_t *wifi_start(void);
@@ -178,10 +178,10 @@ static void on_got_ip(void *arg, esp_event_base_t event_base,
 {
     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
     if (!is_our_netif(TAG, event->esp_netif)) {
-        ESP_LOGW(TAG, "Got IPv4 from another interface \"%s\": ignored", esp_netif_get_desc(event->esp_netif));
+        ESP_LOGW(TAG, "[on_got_ip] Got IPv4 from another interface \"%s\": ignored", esp_netif_get_desc(event->esp_netif));
         return;
     }
-    ESP_LOGI(TAG, "Got IPv4 event: Interface \"%s\" address: " IPSTR, esp_netif_get_desc(event->esp_netif), IP2STR(&event->ip_info.ip));
+    ESP_LOGD(TAG, "[on_got_ip] Got IPv4 event: Interface \"%s\" address: " IPSTR, esp_netif_get_desc(event->esp_netif), IP2STR(&event->ip_info.ip));
     memcpy(&s_ip_addr, &event->ip_info.ip, sizeof(s_ip_addr));
     xSemaphoreGive(s_semph_get_ip_addrs);
 }
@@ -194,11 +194,11 @@ static void on_got_ipv6(void *arg, esp_event_base_t event_base,
 {
     ip_event_got_ip6_t *event = (ip_event_got_ip6_t *)event_data;
     if (!is_our_netif(TAG, event->esp_netif)) {
-        ESP_LOGW(TAG, "Got IPv6 from another netif: ignored");
+        ESP_LOGW(TAG, "[on_got_ipv6] Got IPv6 from another netif: ignored");
         return;
     }
     esp_ip6_addr_type_t ipv6_type = esp_netif_ip6_get_addr_type(&event->ip6_info.ip);
-    ESP_LOGI(TAG, "Got IPv6 event: Interface \"%s\" address: " IPV6STR ", type: %s", esp_netif_get_desc(event->esp_netif),
+    ESP_LOGD(TAG, "[on_got_ipv6] Got IPv6 event: Interface \"%s\" address: " IPV6STR ", type: %s", esp_netif_get_desc(event->esp_netif),
              IPV62STR(event->ip6_info.ip), s_ipv6_addr_types[ipv6_type]);
     if (ipv6_type == EXAMPLE_CONNECT_PREFERRED_IPV6_TYPE) {
         memcpy(&s_ipv6_addr, &event->ip6_info.ip, sizeof(s_ipv6_addr));
@@ -208,7 +208,7 @@ static void on_got_ipv6(void *arg, esp_event_base_t event_base,
 
 #endif // CONFIG_EXAMPLE_CONNECT_IPV6
 
-esp_err_t example_connect(void)
+esp_err_t connect(void)
 {
 #if EXAMPLE_DO_CONNECT
     if (s_semph_get_ip_addrs != NULL) {
@@ -217,9 +217,7 @@ esp_err_t example_connect(void)
 #endif
     start();
     ESP_ERROR_CHECK(esp_register_shutdown_handler(&stop));
-#ifdef DEBUG_PRINT_ENABLE
-    ESP_LOGI(TAG, "Waiting for IP(s)");
-#endif
+    ESP_LOGI(TAG, "[connect] Waiting for IP(s)");
     for (int i = 0; i < NR_OF_IP_ADDRESSES_TO_WAIT_FOR; ++i) {
         xSemaphoreTake(s_semph_get_ip_addrs, portMAX_DELAY);
     }
@@ -229,21 +227,15 @@ esp_err_t example_connect(void)
     for (int i = 0; i < esp_netif_get_nr_of_ifs(); ++i) {
         netif = esp_netif_next(netif);
         if (is_our_netif(TAG, netif)) {
-#ifdef DEBUG_PRINT_ENABLE
-            ESP_LOGI(TAG, "Connected to %s", esp_netif_get_desc(netif));
-#endif
+            ESP_LOGI(TAG, "[connect] Connected to %s", esp_netif_get_desc(netif));
             ESP_ERROR_CHECK(esp_netif_get_ip_info(netif, &ip));
-#ifdef DEBUG_PRINT_ENABLE
-            ESP_LOGI(TAG, "- IPv4 address: " IPSTR, IP2STR(&ip.ip));
-#endif
+            ESP_LOGI(TAG, "[connect] IPv4 address: " IPSTR, IP2STR(&ip.ip));
 #ifdef CONFIG_EXAMPLE_CONNECT_IPV6
             esp_ip6_addr_t ip6[MAX_IP6_ADDRS_PER_NETIF];
             int ip6_addrs = esp_netif_get_all_ip6(netif, ip6);
             for (int j = 0; j < ip6_addrs; ++j) {
                 esp_ip6_addr_type_t ipv6_type = esp_netif_ip6_get_addr_type(&(ip6[j]));
-#ifdef DEBUG_PRINT_ENABLE
-                ESP_LOGI(TAG, "- IPv6 address: " IPV6STR ", type: %s", IPV62STR(ip6[j]), s_ipv6_addr_types[ipv6_type]);
-#endif
+                ESP_LOGI(TAG, "[connect] IPv6 address: " IPV6STR ", type: %s", IPV62STR(ip6[j]), s_ipv6_addr_types[ipv6_type]);
             }
 #endif
 
@@ -269,9 +261,8 @@ esp_err_t example_disconnect(void)
 static void on_wifi_disconnect(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
 {
-#ifdef DEBUG_PRINT_ENABLE
-    ESP_LOGI(TAG, "Wi-Fi disconnected, trying to reconnect...");
-#endif
+    ESP_LOGI(TAG, "[example_disconnect] Wi-Fi disconnected, trying to reconnect...");
+
     esp_err_t err = esp_wifi_connect();
     if (err == ESP_ERR_WIFI_NOT_STARTED) {
         return;
@@ -323,9 +314,8 @@ static esp_netif_t *wifi_start(void)
             .threshold.authmode = EXAMPLE_WIFI_SCAN_AUTH_MODE_THRESHOLD,
         },
     };
-#ifdef DEBUG_PRINT_ENABLE
-    ESP_LOGI(TAG, "Connecting to %s...", wifi_config.sta.ssid);
-#endif
+    ESP_LOGI(TAG, "[wifi_start] Connecting to %s...", wifi_config.sta.ssid);
+
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
@@ -364,9 +354,8 @@ static void on_eth_event(void *esp_netif, esp_event_base_t event_base,
 {
     switch (event_id) {
     case ETHERNET_EVENT_CONNECTED:
-#ifdef DEBUG_PRINT_ENABLE
-        ESP_LOGI(TAG, "Ethernet Link Up");
-#endif
+        ESP_LOGI(TAG, "[on_eth_event] Ethernet Link Up");
+
         esp_netif_create_ip6_linklocal(esp_netif);
         break;
     default:

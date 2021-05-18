@@ -5,6 +5,8 @@
  * \date 2021-03-03
  */
 
+#include "esp_log.h"
+
 #include <bme680.h>
 #include <string.h>
 #include <stdio.h>
@@ -15,6 +17,8 @@
 #include "sensor_defs.h"
 
 #include "config.h"
+
+static const char *TAG = "SENSOR_DRIVER";
 
 
 sensors_status_t
@@ -66,10 +70,8 @@ get_data(sensors_config_t* p_config) {
       return SENSORS_ERR;
     }
     else {
-#ifdef DEBUG_PRINT_ENABLE
-      printf("BME680 Sensor: %.2f °C, %.2f %%, %.2f hPa, %.2f Ohm.\n",
-              values.temperature, values.humidity, values.pressure, values.gas_resistance);
-#endif /* DEBUG_PRINT_ENABLE */
+      ESP_LOGD(TAG, "BME680 Sensor: %.2f °C, %.2f %%, %.2f hPa, %.2f Ohm.",
+        values.temperature, values.humidity, values.pressure, values.gas_resistance);
 
       p_config->data.temperature = values.temperature;
       p_config->data.pressure = values.pressure;
