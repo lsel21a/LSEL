@@ -33,9 +33,12 @@
   :test:
     - +:test/**
     - -:test/support
+    - -:test/libs
   :source:
     - src/**
-    - libs/**
+    - lib/**
+    - include/**
+    - test/libs/**
   :support:
     - test/support
   :libraries: []
@@ -60,6 +63,7 @@
     - :ignore
     - :callback
     - :expect_any_args
+    - :return_thru_ptr
   :treat_as:
     uint8:    HEX8
     uint16:   HEX16

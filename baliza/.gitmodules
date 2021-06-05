@@ -1,0 +1,6 @@
+[submodule "external/esp-idf-lib"]
+	url = https://github.com/UncleRus/esp-idf-lib.git
+	branch = master
+[submodule "lib/bme68x"]
+	url = https://github.com/BoschSensortec/BME68x-Sensor-API.git
+	branch = master

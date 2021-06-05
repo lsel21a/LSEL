@@ -1,0 +1,108 @@
+sudo apt install mosquitto mosquitto-clients
+#sudo apt install influxdb influxdb-client
+sudo apt install apache2
+sudo apt install hostapd dnsmasq
+sudo apt install netfilter-persistent iptables-persistent # Yes, Yes
+
+## InfluxDB
+wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
+echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+sudo apt update
+sudo apt install influxdb
+sudo systemctl unmask influxdb.service
+sudo systemctl enable --now influxdb.service
+influx
+ > CREATE DATABASE test
+ > CREATE USER admin WITH PASSWORD '1234567890' WITH ALL PRIVILEGES
+
+## Inicio servicios
+sudo systemctl enable --now mosquitto.service
+
+## Red WIFI
+# https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md
+sudo systemctl unmask hostapd
+sudo systemctl enable hostapd
+sudo nano /etc/dhcpcd.conf
+[append]
+ >> interface wlan0
+ >>    static ip_address=192.168.4.1/24
+ >>    nohook wpa_supplicant
+# No routing and IP masquerading
+sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig
+sudo nano /etc/dnsmasq.conf
+[append]
+ >> interface=wlan0 # Listening interface
+ >> dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
+ >>                 # Pool of IP addresses served via DHCP
+ >> domain=wlan     # Local wireless DNS domain
+ >> address=/gw.wlan/192.168.4.1
+ >>                 # Alias for this router
+sudo rfkill unblock wlan
+sudo nano /etc/hostapd/hostapd.conf
+[append]
+ >> country_code=ES
+ >> interface=wlan0
+ >> ssid=AP_BALIZA    
+ >> hw_mode=g
+ >> # a = IEEE 802.11a (5 GHz) (Raspberry Pi 3B+ onwards)
+ >> # b = IEEE 802.11b (2.4 GHz)
+ >> # g = IEEE 802.11g (2.4 GHz)
+ >> channel=7
+ >> macaddr_acl=0
+ >> auth_algs=1
+ >> ignore_broadcast_ssid=0
+ >> wpa=2
+ >> wpa_passphrase=1234567890
+ >> wpa_key_mgmt=WPA-PSK
+ >> wpa_pairwise=TKIP
+ >> rsn_pairwise=CCMP
+
+## MQTTS
+# CA gem
+openssl genrsa -out ca.key -des 4096 # -des añade capa extra de seguridad a clave privada
+openssl req -new -x509 -days 1826 -key ca.key -out ca.crt
+
+# Server key gen
+openssl genrsa -out server.key 4096
+openssl req -new -out server.csr -key server.key # CN, poner uno valido, importante!!
+openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt
+
+# Add certs to Mosquitto config folder
+sudo cp ca* /etc/mosquitto/ca_certificates/
+sudo cp server* /etc/mosquitto/certs/
+/etc/mosquitto/mosquitto.conf
+[append]
+ >> # Default listener
+ >> listener 1883
+ >> # Add secure settings
+ >> listener 8883
+ >> cafile /etc/mosquitto/ca_certificates/ca.crt
+ >> keyfile /etc/mosquitto/certs/server.key
+ >> certfile /etc/mosquitto/certs/server.crt     
+ >> tls_version tlsv1.3
+
+# Pruebas
+mosquitto_sub -L mqtts://raspberrypi.lan:8883/test -d --cafile /home/mra/test/mqtt/ca.crt
+mosquitto_pub -L mqtts://raspberrypi.lan:8883/test -d --cafile /home/mra/test/mqtt/ca.crt -m "msg"
+
+## Client
+sudo apt install python3-paho-mqtt python3-influxdb
+
+## Query
+SELECT * FROM "incendio"
+
+## Grafana
+#wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+#echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+
+#sudo apt-get update && sudo apt-get install -y grafana
+
+sudo apt-get install -y adduser libfontconfig1
+wget https://dl.grafana.com/oss/release/grafana_7.5.6_armhf.deb
+sudo dpkg -i grafana_7.5.6_armhf.deb
+
+sudo /bin/systemctl enable --now grafana-server
+
+## Dron delivery
+sudo apt install python3-pip
+sudo pip3 install dronekit cherrypy jinja2 dronekit_sitl simplejson
